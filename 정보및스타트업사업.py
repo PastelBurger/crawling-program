@@ -17,10 +17,11 @@ options = webdriver.ChromeOptions()
 options.add_experimental_option('excludeSwitches', ['enable-logging'])
 driver = webdriver.Chrome(options=options)
 driver.implicitly_wait(3)
-driver.get('http://www.ip-navi.or.kr/ipnavi/ref/boardList.navi?boardCode=B00017')
+driver.get('https://www.ip-navi.or.kr/ipnavi/ref/boardList.navi?boardCode=B00034')
 time.sleep(2)
 
 def function_IP_news() :
+
     page = driver.page_source
     soup = bs(page, "html.parser")
     #헤드라인
@@ -45,12 +46,16 @@ def function_IP_news() :
     s1= pd.DataFrame(v_split.str.get(1))
 
     v_split = s1[0].str.split(',')
-    s1= pd.DataFrame(v_split.str.get(0))
-    s2=[]
-    for tag in s1[0] :
-        s2.append(tag[1:-2])
+    s2= pd.DataFrame(v_split.str.get(0))
+    s3=pd.DataFrame(v_split.str.get(1))
+    s4=[]
+    for tag in s3[0] :
+        s4.append(tag[1:-2])
+    s5=[]
+    for tag1,tag2 in zip(s2[0],s4):
+        s5.append("https://www.ip-navi.or.kr/ipnavi/ref/boardDetail.navi;jsessionid=8360266B59089C27609F57DA66864AD5?boardCode="+tag1[1:-1]+"&boardSeq="+tag2)
 
-    b= pd.DataFrame(s2)
+    b= pd.DataFrame(s5)
 
     # Uploader
     s1=[]
@@ -60,7 +65,7 @@ def function_IP_news() :
     c= pd.DataFrame(s1)
 
     # 날짜
-    d=soup.select('#frm > div > div.board_wrap > table > tbody > tr > td:nth-child(3)')
+    d=soup.select('#frm > div > div.board_wrap > table > tbody > tr > td:nth-child(4)')
     d= pd.DataFrame(d)
     s1=[]
     time_format= "%Y-%m-%d"
@@ -70,12 +75,8 @@ def function_IP_news() :
     d= pd.DataFrame(s1)
 
     # 조회수
-    s1=[]
-    for tag in range(len(a)) :
-        s1.append("None")
-
-    e= pd.DataFrame(s1)
-
+    e=soup.select('#frm > div > div.board_wrap > table > tbody > tr > td:nth-child(3)')
+    e= pd.DataFrame(e)
 
     # 분류
     s1=[]
@@ -261,7 +262,7 @@ def function_기업마당() :
     c = soup.select('html>body>div:nth-child(1)>section>div:nth-child(3)>form>div:nth-child(3)>div:nth-child(3)>table>tbody>tr>td:nth-child(5)')
     c= pd.DataFrame(c)
     # 날짜
-    d = soup.select('html>body>div:nth-child(1)>section>div:nth-child(3)>form>div:nth-child(3)>div:nth-child(3)>table>tbody>tr>td:nth-child(4)')
+    d = soup.select('#articleSearchForm > div.support_project > div.table_Type_1 >table>tbody>tr>td:nth-child(4)')
     d= pd.DataFrame(d)
     s1=[]
     s2=[]
@@ -278,10 +279,17 @@ def function_기업마당() :
     time_format= "%Y-%m-%d"
     s1=[]
     for tag in s3:
-          s1.append ( datetime.datetime.strptime ( tag , time_format ) )
+          try:
+              s1.append ( datetime.datetime.strptime ( tag , time_format ) )
+          except ValueError:
+              s1.append(None)
+
     s2=[]
     for tag in s4:
-          s2.append ( datetime.datetime.strptime ( tag , time_format ) )
+        try:
+            s2.append ( datetime.datetime.strptime ( tag , time_format ) )
+        except ValueError :
+            s2.append ( None )
     d=pd.DataFrame(s1) # 시작날짜
     e=pd.DataFrame(s2) # 종료날짜
     # 조회수
