@@ -9,10 +9,10 @@ import openpyxl
 import datetime
 import matplotlib.pyplot as plt
 
-url="C:/작업서류G/작업서류/1.기술특례상장/2.뷰노/"
-file_name= "0.기초자료.xlsx"
 
+url="C:/작업서류G/작업서류/3.정부사업관련/8. IP 사업수행/10. IP-나래_시프트포/확정_동향조사/"
 
+file_name= "0.Base.xlsx"
 
 df=pd.read_excel(url+file_name)
 
@@ -231,8 +231,11 @@ wedgeprops = {
 }
 color=['#C58940','#D4A657','#E5BA73','#FAEAB1','#FAF8F1']
 
+explode = np.zeros(len(df_2_1['개수']))
+explode[np.argmax(df_2_1['개수'])] = 0.1  # 가장 큰 값에 대한 explode 값 설정
+
 plt.figure(figsize=(5, 5))
-plt.pie(df_2_1['개수'], labels=df_2_1['대분류'], startangle=90, explode=[ 0.1, 0, 0, 0,0], autopct='%.1f%%',counterclock=False,wedgeprops=wedgeprops,colors=color,shadow=True)
+plt.pie(df_2_1['개수'], labels=df_2_1['대분류'], startangle=90, explode=explode, autopct='%.1f%%',counterclock=False,wedgeprops=wedgeprops,colors=color,shadow=True)
 # plt.show()
 
 plt.savefig(url+'3.IPC분류.jpg',dpi=300)
@@ -497,6 +500,7 @@ s2=s1.loc[0:20 ,]
 df4=pd.DataFrame.copy(s2)
 
 # ---------------------------------------------------------------------------------------------------4.1워드 클라우드(한글)
+import wordcloud
 
 import nltk
 from nltk.tokenize import word_tokenize
