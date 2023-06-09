@@ -16,6 +16,14 @@ file_name= "0.Base.xlsx"
 
 df=pd.read_excel(url+file_name)
 
+
+# 한글 폰트 사용을 위해서 세팅
+from matplotlib import font_manager, rc
+font_path = "C:/Windows/Fonts/NGULIM.TTF"
+font = font_manager.FontProperties(fname=font_path).get_name()
+rc('font', family=font)
+
+
 # ------------------------------------------------------------------------------------------------1. 연도별 출원 동향 그래프
 df_1=df[["대표출원인",'출원일']]
 
@@ -57,12 +65,6 @@ df_1_11.to_excel(url+'1.연도별출원동향(엑셀).xlsx')
 #
 # df_1_1['출원연도']=s1
 
-
-# 한글 폰트 사용을 위해서 세팅
-from matplotlib import font_manager, rc
-font_path = "C:/Windows/Fonts/NGULIM.TTF"
-font = font_manager.FontProperties(fname=font_path).get_name()
-rc('font', family=font)
 
 #-------------------------- 그래프그리기
 
@@ -361,7 +363,7 @@ max_label_length = max([len(label) for label in 정렬된_대표출원인])
 font_size = 17 - (max_label_length // 2)
 plt.yticks(fontsize=font_size)
 
-plt.savefig ( url + '4.2 상위 출원인 10개 전체 그래프_'+'.jpg' , dpi=300 )
+plt.savefig ( url + '4_2 상위 출원인 10개 전체 그래프_'+'.jpg' , dpi=300 )
 
 
 # ---------------------------------------------------------------------- 출원인 국가별 개수
@@ -382,27 +384,187 @@ s1.to_excel(url+'4_2.출원인 국가별 개수.xlsx', index=True)
 top_10 = s1.nlargest(10, '합계1')
 
 # 데이터 설정
-countries = top_10.columns[1:]  # 국가 코드 리스트
-num_countries = len(countries)  # 국가 코드 개수
-total_applications = top_10['합계1']  # 대표출원인별 합계
-representatives = top_10.index.tolist()  # 대표출원인 리스트
+top_10_1= top_10.drop(top_10.columns[0], axis=1)
+countries = top_10_1.columns[:]  # 국가 코드 리스트
+application =top_10_1.index
 
 # 그래프 설정
-plt.figure(figsize=(10, 6))  # 그래프 크기 설정
-colors=['#C58940','#D4A657','#E5BA73','#FAEAB1','#FAF8F1']
-bar_colors = colors[:num_countries]  # 개수에 맞게 색상 리스트 할당
+plt.figure(figsize=(8, 6))  # 그래프 크기 설정
+colors=['#4C3D3D','#83764F','#C07F00','#FFD95A','#FFF7D4']
 
-# 가로 바 그래프 그리기
-plt.barh(representatives[::-1], total_applications[::-1], color=bar_colors)
+s1=[]
+s2= pd.Series(0, index=application)
+s3=0
 
-plt.grid ( True , axis='x' , alpha=0.5 , linestyle='--' )
-
+for tag in countries :
+    s1=top_10_1[tag]
+    plt.barh(application, s1, left=s2, color=colors[s3])
+    s2+=s1
+    s3+=1
 
 # y축 범례 폰트 사이즈 설정
-max_label_length = max([len(label) for label in representatives])
+max_label_length = max([len(label) for label in application])
 font_size = 17 - (max_label_length // 2)
 plt.yticks(fontsize=font_size)
+# 그래프 상하 뒤집기
+plt.gca().invert_yaxis()
+# 그래프 배경에 점선 추가
+plt.grid ( True , axis='x' , alpha=0.5 , linestyle='--' )
+plt.subplots_adjust(right=0.8)
 
-plt.savefig ( url + '4.2_1 상위 출원인 10개 전체 그래프_국가표시'+'.jpg' , dpi=300 )
+plt.savefig ( url + '4_2_1 상위 출원인 10개 전체 그래프_국가표시'+'.jpg' , dpi=300 )
 
 
+
+
+
+
+# -----------------------------------------------------------------------------------------------------------5. 내외국인
+
+# ----------------------------5_1. 내외국인비율
+
+df_5=df[["대표출원인",'국가코드', '출원일','제1출원인국적' ]]
+
+
+s1 = []
+time_format ="%Y.%m.%d"
+for tag in df_5['출원일']:
+      s1.append ( datetime.datetime.strptime ( tag , time_format ) )
+
+df_5['출원일']= s1
+df_5['출원연도']=df_5['출원일'].dt.strftime('%Y')
+
+def get_nationality(row):
+    if row['국가코드'] == 'EP':
+        if row['제1출원인국적'] in ['DE', 'FR', 'IE', 'CH', 'DK','NL','ES','PT','PL', 'IT']:
+            return '내국인'
+        else:
+            return '외국인'
+    else:
+        if row['국가코드'] == row['제1출원인국적']:
+            return '내국인'
+        else:
+            return '외국인'
+
+df_5['내외국인']=df_5.apply(get_nationality, axis=1)
+
+# 국가코드별 내외국인 비율 계산
+nation_nationality_counts = df_5.groupby('국가코드')['내외국인'].value_counts()
+nation_nationality_counts=pd.DataFrame(nation_nationality_counts)
+nation_nationality_counts.to_excel(url+'5.1 내외국인 개수.xlsx', index=True)
+#첫번째 인덱스 추가
+s1=nation_nationality_counts.index.get_level_values(0).unique().tolist()
+
+for tag in s1:
+    # US에 대한 데이터 추출
+    df_us = nation_nationality_counts.loc[tag]
+    # 데이터 설정
+    labels = df_us.index
+    sizes = df_us.values
+    sizes = [item for sublist in sizes for item in sublist]
+    # 색상 지정
+    colors = ['#C58940', '#FAEAB1']  # 내외국인에 대한 색상 지정
+    line_color = 'Black'  # 선의 색상 설정
+    # 원 그래프 그리기
+    plt.figure(figsize=(5, 5))
+    wedges, text, autotext = plt.pie(sizes, labels=labels, colors=colors, autopct=lambda p: '{:.1f}%\n({:.0f})'.format(p, p * sum(sizes) / 100),startangle=90,
+                                     wedgeprops={'edgecolor': line_color, 'linewidth': 0.5, 'linestyle': 'solid'})
+    # 원그래프 모양 조정 (동그란 원으로 만들기)
+    plt.axis('equal')
+    # 텍스트 스타일 설정
+    plt.setp(wedges, edgecolor=line_color)
+    plt.setp(text, color=line_color)
+    plt.setp(autotext, color=line_color)
+    plt.savefig ( url + '5_1 내외국인 비율_'+ tag +'.jpg' , dpi=300 )
+
+# ----------------------------5_2. 외국인 비율
+
+foreigners = df_5.loc[df_5['내외국인'] == '외국인']
+
+# '국가코드'별로 '제1출원인국적'의 개수를 세기
+counts = foreigners.groupby(['국가코드', '제1출원인국적']).size().reset_index(name='개수')
+nation_counts = counts.groupby('국가코드').size().reset_index(name='개수')
+# 가장 작은 개수가 4 이하인 경우 해당 수를 반환하고, 그렇지 않은 경우에는 4를 반환
+min_count = nation_counts['개수'].min()
+result = min_count if min_count <= 4 else 4
+
+# '국가코드'별로 상위 4개의 '제1출원인국적' 유지하고, 나머지 국가들의 개수 세기
+
+top4_countries = counts.groupby('국가코드').apply(lambda x: x.nlargest(result, '개수')).reset_index(drop=True)
+others = counts.groupby('국가코드').apply(lambda x: x.nsmallest(len(x) - result, '개수')).reset_index(drop=True)
+others['제1출원인국적'] = '기타'
+others_counts = others.groupby(['국가코드', '제1출원인국적'])['개수'].sum().reset_index()
+
+# '기타'로 합쳐진 데이터 추가하기
+counts_result = pd.concat([top4_countries, others_counts], ignore_index=True)
+
+#첫번째 인덱스 추가
+s1=nation_nationality_counts.index.get_level_values(0).unique().tolist()
+
+
+for tag in s1:
+    df_us = counts_result[counts_result['국가코드'] == tag]
+    # 데이터 설정
+    labels = df_us['제1출원인국적']
+    sizes = df_us[['제1출원인국적','개수']]
+    sizes = sizes.set_index('제1출원인국적')['개수']
+    # 색상 지정
+    colors = ['#C58940','#D4A657','#E5BA73','#FAEAB1','#FAF8F1']  # 색상 지정
+    line_color = 'Black'  # 선의 색상 설정
+    # 원 그래프 그리기
+    plt.figure(figsize=(5, 5))
+    wedges, text, autotext = plt.pie(sizes, labels=labels, colors=colors, autopct=lambda p: '{:.1f}%\n({:.0f})'.format(p, p * sum(sizes) / 100),startangle=90,
+                                     wedgeprops={'edgecolor': line_color, 'linewidth': 0.5, 'linestyle': 'solid'})
+    # 원그래프 모양 조정 (동그란 원으로 만들기)
+    plt.axis('equal')
+    # 텍스트 스타일 설정
+    plt.setp(wedges, edgecolor=line_color)
+    plt.setp(text, color=line_color)
+    plt.setp(autotext, color=line_color)
+    plt.savefig ( url + '5_2 외국인 비율_'+ tag +'.jpg' , dpi=300 )
+
+
+# -------------------------------5_2. 내외국인 출원동향
+
+country_codes = df_5['국가코드'].unique().tolist()
+
+df_5['출원연도'] = df_5['출원연도'].astype(int)
+
+domestic = df_5[df_5['내외국인']=='내국인']
+foreign = df_5[df_5['내외국인']=='외국인']
+domestic_counts = domestic.groupby(['국가코드', '출원연도']).size().reset_index(name='개수')
+foreign_counts = foreign.groupby(['국가코드', '출원연도']).size().reset_index(name='개수')
+domestic_counts=domestic_counts.sort_values('출원연도')
+foreign_counts=foreign_counts.sort_values('출원연도')
+
+for tag in country_codes:
+    domestic_data = domestic_counts[domestic_counts['국가코드'] == tag]
+    foreign_data = foreign_counts[foreign_counts['국가코드'] == tag]
+    domestic_series = domestic_data.set_index('출원연도')['개수']
+    foreign_series = foreign_data.set_index('출원연도')['개수']
+    #-------------------------- 그래프그리기
+    plt.figure(figsize=(8, 6))
+    plt.bar(foreign_series.index,foreign_series, color='#FAEAB1',width=0.3,  label='외국인',edgecolor='#E5BA73',linewidth=0.2)
+    plt.plot(domestic_series.index,domestic_series,'--', color='#B69F5E', label='내국인', marker='o', markersize=3)
+    plt.grid(True, axis='y',alpha=0.5, linestyle='--')
+    plt.xticks( rotation=45)
+    plt.legend(loc='upper left')
+    plt.savefig ( url + '5_3 내외국인 연도별 동향_' + tag + '.jpg' , dpi=300 )
+
+
+
+
+
+# color=['#C58940','#D4A657','#E5BA73','#FAEAB1','#FAF8F1']
+#
+#
+# for tag in s1:
+#     print(tag)
+#
+# d
+#
+#
+#
+#
+#
+# nation_ratios = {}
