@@ -265,7 +265,7 @@ for rect in bar:
 plt.savefig(url+'3.1_IPC소분류.jpg',dpi=300)
 
 # -----------------------------------------------------------------------------------------------------------4. 경쟁사 뽑기
-
+# ----------------------------------------------------------------------------------------------4.1 출원인별 그래프
 df_4=df[["대표출원인",'출원일']]
 
 s1 = []
@@ -292,7 +292,7 @@ top_30 = s1.nlargest(30, '합계1')
 df_4_1= s1.loc[top_10.index, :]
 df_4_1.loc['합계2'] =  s1.iloc[-1]
 
-df_4_1.to_excel(url+'4_1.상위10개 출원인.xlsx', index=True)
+df_4_1.to_excel(url+'4_1_0.상위10개 출원인.xlsx', index=True)
 top_30.to_excel(url+'4_1_1.상위30개 출원인.xlsx', index=True)
 
 # ----------------------------------------------------------------------그래프
@@ -305,6 +305,7 @@ plt.figure(figsize=(10, 6))  # 그래프 크기 설정
 
 # color=['#C58940','#D4A657','#E5BA73','#FAEAB1','#FAF8F1']
 # 그래프 그리기
+ss=1
 for 출원인 in 대표출원인 :
     plt.figure ( figsize=(10 , 6) )  # 그래프 크기 설정
     개수_합계2 = df_4_1.loc['합계2' , 출원연도]
@@ -318,9 +319,11 @@ for 출원인 in 대표출원인 :
     # 그래프 레이블, 타이틀 설정
     plt.xticks ( rotation=45 )
     plt.grid ( True , axis='y' , alpha=0.5 , linestyle='--' )
-    plt.savefig ( url + '4.1 출원인별그래프_' + 출원인 + '.jpg' , dpi=300 )
+    plt.savefig ( url + '4_1 출원인별그래프_' +str(ss)+출원인 + '.jpg' , dpi=300 )
+    ss+=1
 
 # 그래프 그리기
+ss=1
 for 출원인 in 대표출원인 :
     plt.figure ( figsize=(10 , 6) )  # 그래프 크기 설정
     개수 = df_4_1.loc[출원인 , 출원연도]
@@ -331,7 +334,8 @@ for 출원인 in 대표출원인 :
     # 그래프 레이블, 타이틀 설정
     plt.xticks ( rotation=45 )
     plt.grid ( True , axis='y' , alpha=0.5 , linestyle='--' )
-    plt.savefig ( url + '4.1 출원인별그래프_' + 출원인 +'(전체없음)'+'.jpg' , dpi=300 )
+    plt.savefig ( url + '4_1 출원인별그래프_' +str(ss)+ 출원인 +'(전체없음)'+'.jpg' , dpi=300 )
+    ss+=1
 
 from matplotlib import font_manager, rc
 font_path = "C:/Windows/Fonts/NGULIM.TTF"
@@ -363,10 +367,10 @@ max_label_length = max([len(label) for label in 정렬된_대표출원인])
 font_size = 17 - (max_label_length // 2)
 plt.yticks(fontsize=font_size)
 
-plt.savefig ( url + '4_2 상위 출원인 10개 전체 그래프_'+'.jpg' , dpi=300 )
+plt.savefig ( url + '4_2_0 상위 출원인 10개 전체 그래프'+'.jpg' , dpi=300 )
 
 
-# ---------------------------------------------------------------------- 출원인 국가별 개수
+# ----------------------------------------------------------------------------------------------4.2 출원인 국가별 개수
 
 
 df_4_2=df[["대표출원인",'국가코드']]
@@ -378,7 +382,7 @@ s1['합계1'] = s1.iloc[:, 1:].sum(axis=1)
 s1= s1.sort_values(by='합계1', ascending=False)
 s1=s1[['합계1'] + list(s1.columns[:-1])]
 
-s1.to_excel(url+'4_2.출원인 국가별 개수.xlsx', index=True)
+s1.to_excel(url+'4_2_0.출원인 국가별 개수.xlsx', index=True)
 
 # 합계의 개수별로 상위 10개의 대표출원인 선택
 top_10 = s1.nlargest(10, '합계1')
@@ -415,11 +419,118 @@ plt.subplots_adjust(right=0.8)
 plt.savefig ( url + '4_2_1 상위 출원인 10개 전체 그래프_국가표시'+'.jpg' , dpi=300 )
 
 
+# ----------------------------------------------------------------------------------------------4.3 국가별 출원인 분석
+
+country_codes = df['국가코드'].unique()
+
+for unique_tag in country_codes:
+    df_country=df[df['국가코드'] == unique_tag]
+
+    df_4=df_country[["대표출원인",'출원일']]
+
+    s1 = []
+    time_format ="%Y.%m.%d"
+    for tag in df_4['출원일']:
+          s1.append ( datetime.datetime.strptime ( tag , time_format ) )
+
+    df_4.loc[:,'출원일']= s1
+    df_4.loc[:,'출원연도']=df_4['출원일'].dt.strftime('%Y')
+
+    s1 = []
+    s1= counts = df_4.groupby('대표출원인')['출원연도'].value_counts().unstack(fill_value=0)
+    s1['합계1'] = s1.iloc[:, 1:].sum(axis=1)
+    s1= s1.sort_values(by='합계1', ascending=False)
+    s1=s1[['합계1'] + list(s1.columns[:-1])]
+    year_totals = s1.iloc[:, 1:].sum()
+    s1.loc['합계2'] = year_totals
+
+    # 합계의 개수별로 상위 10개의 대표출원인 선택
+    top_10 = s1.nlargest(10, '합계1')
+    top_30 = s1.nlargest(30, '합계1')
+
+    # 선택된 10개의 대표출원인의 연도별 개수와 마지막 행 포함하는 테이블 생성
+    df_4_1= s1.loc[top_10.index, :]
+    df_4_1.loc['합계2'] =  s1.iloc[-1]
+
+    df_4_1.to_excel(url+'4_1_0_'+unique_tag+'.상위10개 출원인.xlsx', index=True)
+    top_30.to_excel(url+'4_1_1_'+unique_tag+'.상위30개 출원인.xlsx', index=True)
+
+    # ----------------------------------------------------------------------그래프
+    # 그래프 설정
+    plt.figure(figsize=(10, 6))  # 그래프 크기 설정
+
+    # 대표출원인 리스트 생성
+    대표출원인 = df_4_1.index.tolist()
+    출원연도 = df_4_1.columns[1:].tolist()
+
+    # color=['#C58940','#D4A657','#E5BA73','#FAEAB1','#FAF8F1']
+    # 그래프 그리기
+    ss=1
+    for 출원인 in 대표출원인 :
+        plt.figure ( figsize=(10 , 6) )  # 그래프 크기 설정
+        개수_합계2 = df_4_1.loc['합계2' , 출원연도]
+        plt.plot ( 출원연도 , 개수_합계2 , linestyle='--' , marker='o' , label='합계2', color='#C58940' )
+        # 대표출원인 열만 선택
+        개수 = df_4_1.loc[출원인 , 출원연도]
+        # 대표출원인은 실선 꺾은선 그래프로 그리기
+        plt.plot ( 출원연도 , 개수 , linestyle='-' , marker='o' , label=출원인 , color='#D4A657' )
+        # 음영 처리
+        plt.fill_between ( 출원연도 , 개수 , 0 , color='gray' , alpha=0.3 )
+        # 그래프 레이블, 타이틀 설정
+        plt.xticks ( rotation=45 )
+        plt.grid ( True , axis='y' , alpha=0.5 , linestyle='--' )
+        plt.savefig ( url + '4_1_'+unique_tag+' 출원인별그래프_' + str(ss)+출원인 + '.jpg' , dpi=300 )
+        ss+=1
+
+    # 그래프 그리기
+    ss=1
+    for 출원인 in 대표출원인 :
+        plt.figure ( figsize=(10 , 6) )  # 그래프 크기 설정
+        개수 = df_4_1.loc[출원인 , 출원연도]
+        # 대표출원인은 실선 꺾은선 그래프로 그리기
+        plt.plot ( 출원연도 , 개수 , linestyle='-' , marker='o' , label=출원인, color='#C58940' )
+        # 음영 처리
+        plt.fill_between ( 출원연도 , 개수 , 0 , color='gray' , alpha=0.3 )
+        # 그래프 레이블, 타이틀 설정
+        plt.xticks ( rotation=45 )
+        plt.grid ( True , axis='y' , alpha=0.5 , linestyle='--' )
+        plt.savefig ( url + '4_1_'+unique_tag+' 출원인별그래프_' +str(ss)+ 출원인 +'(전체없음)'+'.jpg' , dpi=300 )
+        ss+=1
+
+    from matplotlib import font_manager, rc
+    font_path = "C:/Windows/Fonts/NGULIM.TTF"
+    font = font_manager.FontProperties(fname=font_path).get_name()
+    rc('font', family=font)
 
 
+    # 대표출원인 리스트 생성
+    대표출원인 = df_4_1.index.tolist()
+
+    # 대표출원인별 합계 추출
+    합계 = df_4_1.loc[:, '합계1']
+
+    # 합계를 기준으로 대표출원인 정렬
+    정렬된_대표출원인 = sorted(대표출원인, key=lambda x: 합계[x], reverse=True)
+    정렬된_합계 = [합계[x] for x in 정렬된_대표출원인]
+
+    # 그래프 설정
+    plt.figure(figsize=(10, 6))  # 그래프 크기 설정
+
+    # 가로 막대 그래프 그리기
+    plt.barh(정렬된_대표출원인[::-1], 정렬된_합계[::-1],color='#C58940')  # 역순으로 그래프 그리기
+    plt.grid ( True , axis='x' , alpha=0.5 , linestyle='--' )
+    # 좌우측 여백 추가
 
 
-# -----------------------------------------------------------------------------------------------------------5. 내외국인
+    # y축 범례 폰트 사이즈 설정
+    max_label_length = max([len(label) for label in 정렬된_대표출원인])
+    font_size = 17 - (max_label_length // 2)
+    plt.yticks(fontsize=font_size)
+
+    plt.savefig ( url + '4_2_1_'+unique_tag+' 상위 출원인 10개 전체 그래프_'+'.jpg' , dpi=300 )
+
+
+    # -----------------------------------------------------------------------------------------------------------5. 내외국인
 
 # ----------------------------5_1. 내외국인비율
 
