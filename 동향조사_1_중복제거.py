@@ -10,7 +10,7 @@ import datetime
 import matplotlib.pyplot as plt
 
 
-url="C:/작업서류G/작업서류/3.정부사업관련/8. IP 사업수행/10. IP-나래_시프트포/동향조사_Test/"
+url="C:/작업서류G/작업서류/3.정부사업관련/8_IP_사업수행/10_IP-나래_시프트포/동향조사_Test/"
 
 file_name= "0.Base.xlsx"
 

@@ -192,7 +192,7 @@ def pt_trend (url, df) :
     df_2_1.columns=['대분류','개수','퍼센트']
 
     # ------------------------------------
-    df24=df_2[df_2['대분류']==df_2_1['대분류'][0]]
+    df24=df_2[df_2['대분류']==df_2_1['대분류'][1]]
 
     ipc=list(set(df24['ipc']))
     dt=len(df['메인 IPC'])
@@ -275,7 +275,7 @@ def pt_trend (url, df) :
 
     s1 = []
     s1= counts = df_4.groupby('대표출원인')['출원연도'].value_counts().unstack(fill_value=0)
-    s1['합계1'] = s1.iloc[:, 1:].sum(axis=1)
+    s1['합계1'] = s1.iloc[:, :].sum(axis=1)
     s1= s1.sort_values(by='합계1', ascending=False)
     s1=s1[['합계1'] + list(s1.columns[:-1])]
     year_totals = s1.iloc[:, 1:].sum()
@@ -375,7 +375,7 @@ def pt_trend (url, df) :
 
     s1 = []
     s1= counts = df_4_2.groupby('대표출원인')['국가코드'].value_counts().unstack(fill_value=0)
-    s1['합계1'] = s1.iloc[:, 1:].sum(axis=1)
+    s1['합계1'] = s1.iloc[:, :].sum(axis=1)
     s1= s1.sort_values(by='합계1', ascending=False)
     s1=s1[['합계1'] + list(s1.columns[:-1])]
 
@@ -435,7 +435,7 @@ def pt_trend (url, df) :
 
         s1 = []
         s1= counts = df_4.groupby('대표출원인')['출원연도'].value_counts().unstack(fill_value=0)
-        s1['합계1'] = s1.iloc[:, 1:].sum(axis=1)
+        s1['합계1'] = s1.iloc[:, :].sum(axis=1)
         s1= s1.sort_values(by='합계1', ascending=False)
         s1=s1[['합계1'] + list(s1.columns[:-1])]
         year_totals = s1.iloc[:, 1:].sum()
@@ -737,7 +737,7 @@ def pre_pt_trend (url, df) :
 
     s1 = []
     s1= counts = df_4.groupby('대표출원인')['출원연도'].value_counts().unstack(fill_value=0)
-    s1['합계1'] = s1.iloc[:, 1:].sum(axis=1)
+    s1['합계1'] = s1.iloc[:, :].sum(axis=1)
     s1= s1.sort_values(by='합계1', ascending=False)
     s1=s1[['합계1'] + list(s1.columns[:-1])]
     year_totals = s1.iloc[:, 1:].sum()
@@ -781,7 +781,49 @@ def pre_pt_trend (url, df) :
     plt.savefig ( url + '0_4_2_0 상위 출원인 10개 전체 그래프'+'.jpg' , dpi=300 )
 
 
+def df_check (df) :
+    if '대표출원인' not in df.columns :
+        print ( "대표출원인 컬럼이 없습니다." )
+        exit ()  # 프로그램 종료
 
+    if 'JPPAJ' in df['국가코드'].values :
+        print ( "JPPAJ가 있습니다." )
+        exit ()  # 프로그램 종료
+
+    if any ( df['대표출원인'].isin ( ['' , '-'] ) ) :
+        if '' in df['대표출원인'] :
+            print ( "대표출원인에 빈칸이 있습니다." )
+            exit ()  # 프로그램 종료
+        if '-' in df['대표출원인'] :
+            print ( "대표출원인에 '-'가 있습니다." )
+            exit ()  # 프로그램 종료
+
+    if any ( df['제1출원인국적'].isin ( ['' , '-'] ) ) :
+        if '' in df['제1출원인국적'] :
+            print ( "제1출원인국적에 빈칸이 있습니다." )
+            exit ()  # 프로그램 종료
+        if '-' in df['제1출원인국적'] :
+            print ( "제1출원인국적에 '-'가 있습니다." )
+            exit ()  # 프로그램 종료
+
+
+
+
+def delete_duplicate (url, file_name) :
+
+    df=pd.read_excel(url+file_name)
+
+    # 출원번호가 중복된 경우 랜덤하게 하나의 행만 남기고 나머지 행 삭제
+    duplicate_mask = df.duplicated(subset='출원번호')
+    duplicate_indices = df[duplicate_mask].index
+
+    # 중복된 행들 중에서 랜덤하게 하나의 행 선택
+    random_index = np.random.choice(duplicate_indices)
+
+    # 중복된 행들 중에서 선택한 행을 제외한 나머지 행 삭제
+    df.drop(index=duplicate_indices[duplicate_indices != random_index], inplace=True)
+
+    df.to_excel(url+'base1.xlsx')
 
 
 

@@ -308,32 +308,72 @@ url="https://biz.kista.re.kr/ippro/com/iprndMain/selectBusinessAnnounceList.do?b
 page = requests.get(url)
 soup = bs(page.text, "html.parser")
 
-Data1=soup.select('tbody >tr >td')
+# 제목 생성
+a = soup.select('td.left a')
+s1 = []
+for tag in a :
+    s1.append ( tag.text.replace('\n','').replace('\t','').replace('  ','').replace('\xa0','').replace('\r','') )
 
+a = pd.DataFrame ( s1 )
+# 번호 생성
+b = soup.select('body div.main_contents div.sub_contents form table tbody tr td:nth-child(1)')
+s1 = []
+s1 = [int(td.get_text(strip=True)) for td in b]
+b = pd.DataFrame ( s1 )
+# 등록일 생성
+c = soup.select ( 'body  div.main_contents  div.sub_contents  form  table  tbody  tr  td:nth-child(5)' )
+start_dates = []
+end_dates = []
+s1=[]
+for tag in c:
+    s1.append(tag.text.replace("<td>", "").replace("</td>", "").replace("<br>", "").replace("</br>", ""))
 
-a = pd.DataFrame(tag.text for tag in Data1 if Data1.index(tag) % 5==1)
-b = pd.DataFrame(tag.text for tag in Data1 if Data1.index(tag) % 5==2)
-c = pd.DataFrame(tag for tag in Data1 if Data1.index(tag) % 5==3)
-d = pd.DataFrame(tag for tag in Data1 if Data1.index(tag) % 5==4)
+for tag in s1 :
+    start_date, end_date = tag.split(" ~ ")
+    start_dates.append(start_date)
+    end_dates.append(end_date)
 
-Dead_s =[]
-Deadline =[]
+c=pd.DataFrame(start_dates)
+Deadline=pd.DataFrame(end_dates)
 
-for tag in d[2] :
-    Dead_s.append(tag.strip(' ~ '))
+time_format = "%Y-%m-%d"
+s1 = []
+for tag in c[0] :
+    s1.append ( datetime.datetime.strptime ( tag , time_format ) )
 
-Dead_s = pd.DataFrame(Dead_s)
-Deadline=pd.DataFrame(func_to_date(Dead_s[0]))
-Date1=pd.DataFrame(func_to_date(d[0]))
-Condition=[]
-Condition = pd.DataFrame(func_create_Condition(Deadline[0]))
+c = pd.DataFrame ( s1 )
 
+s1 = []
+for tag in Deadline[0] :
+    s1.append ( datetime.datetime.strptime ( tag , time_format ) )
+
+Deadline = pd.DataFrame ( s1 )
+
+# 조회수생성
+d = soup.select ( 'body  div.main_contents  div.sub_contents form  table  tbody  tr td:nth-child(4)' )
+s1 = []
+s1 = [int(td.get_text(strip=True)) for td in d]
+d = pd.DataFrame ( s1 )
+
+# Condition
+e = soup.select ( 'body  div.main_contents  div.sub_contents  form  table  tbody  tr td.left  a  img' )
+s1=[]
+for tag in e :
+    s1.append(tag.get('alt'))
+
+Condition = pd.DataFrame ( s1 )
+
+# 구분생성
+e= soup.select ( 'body  div.main_contents  div.sub_contents  form  table  tbody  tr td:nth-child(2)' )
+s1 = []
+s1 = [td.get_text(strip=True) for td in e]
+e = pd.DataFrame ( s1 )
 
 df=[]
 
-df= pd.merge(a,b, left_index=True, right_index=True, how='outer')
+df= pd.merge(e,a, left_index=True, right_index=True, how='outer')
+df= pd.merge(df,b, left_index=True, right_index=True, how='outer')
 df= pd.merge(df,c, left_index=True, right_index=True, how='outer')
-df= pd.merge(df,Date1, left_index=True, right_index=True, how='outer')
 df['link']= url
 df['Site']= '전략개발원_사업공고'
 df= pd.merge(df,Deadline, left_index=True, right_index=True, how='outer')
@@ -351,34 +391,72 @@ url="https://biz.kista.re.kr/ippro/com/iprndMain/selectBusinessAnnounceList.do?b
 page = requests.get(url)
 soup = bs(page.text, "html.parser")
 
-Data1=soup.select('tbody >tr >td')
+# 제목 생성
+a = soup.select('td.left a')
+s1 = []
+for tag in a :
+    s1.append ( tag.text.replace('\n','').replace('\t','').replace('  ','').replace('\xa0','').replace('\r','') )
 
+a = pd.DataFrame ( s1 )
+# 번호 생성
+b = soup.select('body div.main_contents div.sub_contents form table tbody tr td:nth-child(1)')
+s1 = []
+s1 = [int(td.get_text(strip=True)) for td in b]
+b = pd.DataFrame ( s1 )
+# 등록일 생성
+c = soup.select ( 'body  div.main_contents  div.sub_contents  form  table  tbody  tr  td:nth-child(5)' )
+start_dates = []
+end_dates = []
+s1=[]
+for tag in c:
+    s1.append(tag.text.replace("<td>", "").replace("</td>", "").replace("<br>", "").replace("</br>", ""))
 
-a = pd.DataFrame(tag.text for tag in Data1 if Data1.index(tag) % 5==1)
-b = pd.DataFrame(tag.text for tag in Data1 if Data1.index(tag) % 5==2)
-c = pd.DataFrame(tag for tag in Data1 if Data1.index(tag) % 5==3)
-d = pd.DataFrame(tag for tag in Data1 if Data1.index(tag) % 5==4)
+for tag in s1 :
+    start_date, end_date = tag.split(" ~ ")
+    start_dates.append(start_date)
+    end_dates.append(end_date)
 
-# 현재 날짜랑 비교해서 컨디션 기입
-Dead_s=[]
-Deadline=[]
-Condition=[]
+c=pd.DataFrame(start_dates)
+Deadline=pd.DataFrame(end_dates)
 
+time_format = "%Y-%m-%d"
+s1 = []
+for tag in c[0] :
+    s1.append ( datetime.datetime.strptime ( tag , time_format ) )
 
-for tag in d[2] :
-    Dead_s.append(tag.strip(' ~ '))
+c = pd.DataFrame ( s1 )
 
-Dead_s = pd.DataFrame(Dead_s)
-Deadline=pd.DataFrame(func_to_date(Dead_s[0]))
-Date1=pd.DataFrame(func_to_date(d[0]))
-Condition = pd.DataFrame(func_create_Condition(Deadline[0]))
+s1 = []
+for tag in Deadline[0] :
+    s1.append ( datetime.datetime.strptime ( tag , time_format ) )
 
+Deadline = pd.DataFrame ( s1 )
+
+# 조회수생성
+d = soup.select ( 'body  div.main_contents  div.sub_contents form  table  tbody  tr td:nth-child(4)' )
+s1 = []
+s1 = [int(td.get_text(strip=True)) for td in d]
+d = pd.DataFrame ( s1 )
+
+# Condition
+e = soup.select ( 'body  div.main_contents  div.sub_contents  form  table  tbody  tr td.left  a  img' )
+s1=[]
+for tag in e :
+    s1.append(tag.get('alt'))
+
+Condition=pd.DataFrame(s1)
+
+# 구분생성
+e= soup.select ( 'body  div.main_contents  div.sub_contents  form  table  tbody  tr td:nth-child(2)' )
+s1 = []
+s1 = [td.get_text(strip=True) for td in e]
+e = pd.DataFrame ( s1 )
 
 df=[]
 
-df= pd.merge(a,b, left_index=True, right_index=True, how='outer')
+df= pd.merge(e,a, left_index=True, right_index=True, how='outer')
+df= pd.merge(df,b, left_index=True, right_index=True, how='outer')
 df= pd.merge(df,c, left_index=True, right_index=True, how='outer')
-df= pd.merge(df,Date1, left_index=True, right_index=True, how='outer')
 df['link']= url
 df['Site']= '전략개발원_협력기관모집공고'
 df= pd.merge(df,Deadline, left_index=True, right_index=True, how='outer')
@@ -389,157 +467,167 @@ df.columns=['Uploader','Headline', "Number", "Date1", "Link", "Site", 'Deadline'
 전략개발원_협력기관모집공고=df[["Site","Number",'Headline',"Link",'Uploader',"Date1", 'Deadline', 'Condition' ]]
 
 
-
-
 # < 전략개발원_협력기관공고 - -----------------------------------------------------------------------------------종료 >
 
-# # < 지식재산바우처_스타트업 --------------------------------------------------------------------------------------- 시작 5>
-#
-# url="https://biz.kista.re.kr/ipvoucher/notiStatupList.do"
-# page = requests.get(url)
-# soup = bs(page.text, "html.parser")
-#
-# Data1=soup.select('body>div>form>div>div>div>p')
-#
-#
-# a = pd.DataFrame(tag.text for tag in Data1 if Data1.index(tag) % 3==1)
-# b = pd.DataFrame(tag for tag in Data1 if Data1.index(tag) % 3==2)
-# c = pd.DataFrame(tag for tag in Data1 if Data1.index(tag) % 3==0)
-#
-# # 날짜나누기
-# v_split = b[1].str.split('~')
-# v_Date1 = pd.DataFrame(v_split.str.get(0))
-# v_Date2 = pd.DataFrame(v_split.str.get(1))
-#
-# s1 = []
-# s2 = []
-# time_format = " %Y.%m.%d %H:%M "
-# for tag in v_Date1[1] :
-#       s1.append(tag.replace('\n','').replace('\t',''))
-#
-# s1= pd.DataFrame ( s1 )
-# for tag in s1[0]:
-#       s2.append ( datetime.datetime.strptime ( tag , time_format ) )
-#
-# v_Date1=pd.DataFrame(s2)
-# s1 = []
-# s2 = []
-# time_format = " %Y.%m.%d %H:%M"
-# for tag in v_Date2[1] :
-#      s1.append(tag.replace('\n','').replace('\t',''))
-#
-# s1 = pd.DataFrame ( s1 )
-# for tag in s1[0]:
-#      s2.append ( datetime.datetime.strptime ( tag , time_format ) )
-#
-# v_Date2=pd.DataFrame(s2)
-# Condition=[]
-# Condition = func_create_Condition(v_Date2[0])
-# Condition=pd.DataFrame(Condition)
-#
-# df= pd.merge(a,c, left_index=True, right_index=True, how='outer')
-# df['Uploader'] = ""
-# df= pd.merge(df,v_Date1, left_index=True, right_index=True, how='outer')
-# df['link']= url
-# df['Site']= '지식재산바우처_스타트업'
-# df= pd.merge(df,v_Date2, left_index=True, right_index=True, how='outer')
-# df= pd.merge(df,Condition, left_index=True, right_index=True, how='outer')
-#
-# df.columns=['Headline', "Number", 'Uploader', "Date1", "Link", "Site", 'Deadline', 'Condition']
-#
-# 지식재산바우처_스타트업=df[["Site", "Number", 'Headline', "Link", 'Uploader',"Date1", 'Deadline', 'Condition' ]]
-#
-#
-#
-#
-# # < 지식재산바우처_스타트업 ------------------------------------------------------------------------------------ 종료 >
-#
-# # < 지식재산바우처_IP서비스기관모집 --------------------------------------------------------------------------------- 시작 6>
-#
-# url="https://biz.kista.re.kr/ipvoucher/ipSrvc/notiIpSrvcList.do"
-#
-# page = requests.get(url)
-#
-# soup = bs(page.text, "html.parser" )
-#
-# #넘버
-# a=soup.select('#notiIpSrvcListForm > div > div.startup_list > div > div.startup_txt > p:nth-child(1)')
-# a= pd.DataFrame(a)
-#
-# #헤드라인
-# b=soup.select('#notiIpSrvcListForm > div > div.startup_list > div > div.startup_txt > p:nth-child(2)')
-# ss=[]
-#
-# for tag in b :
-#     ss.append(tag.text)
-#
-# b= pd.DataFrame(ss)
-#
-# #날짜
-# c=[]
-# c=soup.select('#notiIpSrvcListForm > div > div.startup_list > div > div.startup_txt > p:nth-child(3)')
-# c= pd.DataFrame(c)
-#
-# v_split = c[2].str.split('~')
-# v_Date1 = pd.DataFrame(v_split.str.get(0))
-# v_Date2 = pd.DataFrame(v_split.str.get(1))
-#
-# s1 = []
-# s2 = []
-# time_format = "%Y.%m.%d %H:%M"
-#
-# for tag in v_Date1[2] :
-#       s1.append(tag.replace('\n','').replace('\t','').replace('  ','').replace('\xa0','').replace('\r',''))
-#
-# for tag in s1:
-#       s2.append ( datetime.datetime.strptime ( tag , time_format ) )
-#
-# c = pd.DataFrame(s2)
-#
-# s1 = []
-# s2 = []
-# time_format = " %Y.%m.%d %H:%M"
-#
-# for tag in v_Date2[2] :
-#       s1.append(tag.replace('\n','').replace('\t','').replace('  ','').replace('\xa0','').replace('\r',''))
-#
-# for tag in s1:
-#       s2.append ( datetime.datetime.strptime ( tag , time_format ) )
-#
-# d = pd.DataFrame(s2)
-#
-# # Condition
-# e=[]
-# e=soup.select('#notiIpSrvcListForm > div > div.startup_list > div > div.startup_icon.close')
-# s1=[]
-# s2=[]
-#
-# for tag in e :
-#     s1.append(tag.text)
-#
-# for tag in s1 :
-#       s2.append(tag.replace('\n','').replace('\t','').replace('  ','').replace('\xa0','').replace('\r',''))
-#
-# e = pd.DataFrame(s2)
-#
-# #notiIpSrvcListForm > div > div.startup_list > div:nth-child(1) > div.startup_icon.close
-#
-# df= pd.merge(b,a, left_index=True, right_index=True, how='outer')
-# df['Uploader'] = ""
-# df= pd.merge(df,c, left_index=True, right_index=True, how='outer')
-# df['link']= url
-# df['Site']= '지식재산바우처_IP서비스기관모집'
-# df= pd.merge(df,d, left_index=True, right_index=True, how='outer')
-# df= pd.merge(df,e, left_index=True, right_index=True, how='outer')
-#
-# df.columns=['Headline', "Number", 'Uploader', "Date1", "Link", "Site", 'Deadline', 'Condition']
-#
-# 지식재산바우처_IP서비스기관모집=df[["Site", "Number", 'Headline', "Link", 'Uploader',"Date1", 'Deadline', 'Condition' ]]
-#
-#
-#
-#
-# # < 지식재산바우처_IP서비스기관모집 --------------------------------------------------------------------------------- 종료 >
+
+# < 지식재산바우처_스타트업 --------------------------------------------------------------------------------------- 시작 5>
+
+url="https://ripc.org/ipvoucher/notiStatupList.do"
+page = requests.get(url)
+soup = bs(page.text, "html.parser")
+
+
+# 제목 생성
+a = soup.select('body  div.center_form_box  form  div.startup_list  div div.startup_txt  p:nth-child(2)  a')
+s1 = []
+s1 = [td.get_text(strip=True) for td in a]
+a = pd.DataFrame ( s1 )
+# 번호 생성
+b=len(a)
+s1=list(range(1, b+1))
+b = pd.DataFrame ( s1 )
+# 등록일 생성
+c = soup.select ( 'body  div.center_form_box  form  div.startup_list  div div.startup_txt  p:nth-child(3)' )
+start_dates = []
+end_dates = []
+s1=[]
+for tag in c:
+    s1.append(tag.text.replace("<td>", "").replace("</td>", "").replace("<br>", "").replace("</br>", "").replace("접수기간", "").replace(":", "").replace(" ", ""))
+
+for tag in s1 :
+    start_date, end_date = tag.split("~")
+    start_dates.append(start_date)
+    end_dates.append(end_date)
+
+c=pd.DataFrame(start_dates)
+Deadline=pd.DataFrame(end_dates)
+
+time_format = "%Y.%m.%d%H%M"
+s1 = []
+for tag in c[0] :
+    s1.append ( datetime.datetime.strptime ( tag , time_format ) )
+
+c = pd.DataFrame ( s1 )
+
+s1 = []
+for tag in Deadline[0] :
+    s1.append ( datetime.datetime.strptime ( tag , time_format ) )
+
+Deadline = pd.DataFrame ( s1 )
+
+# 조회수생성
+d = soup.select ( 'body  div.center_form_box  form  div.startup_list  div  div.startup_option  div.view_count' )
+s1 = []
+for tag in d:
+    s1.append(int(tag.text.replace("조회수", "").replace(":", "").replace(" ", "")))
+
+d = pd.DataFrame ( s1 )
+
+# Condition
+e = soup.select ( 'body  div.center_form_box  form  div.startup_list  div div.startup_icon.close' )
+s1=[]
+s1 = [td.get_text(strip=True) for td in e]
+e = pd.DataFrame ( s1 )
+
+# a: 제목 생성 b:번호 c:등록일 d: 조회수 Deadline:마감일 e:현재상태
+
+
+df=[]
+
+df= pd.merge(a,b, left_index=True, right_index=True, how='outer')
+df['Uploader'] = ""
+df= pd.merge(df,c, left_index=True, right_index=True, how='outer')
+df['link']= url
+df['Site']= '지식재산바우처_스타트업'
+df= pd.merge(df,Deadline, left_index=True, right_index=True, how='outer')
+df= pd.merge(df,e, left_index=True, right_index=True, how='outer')
+
+df.columns=['Headline', "Number", 'Uploader', "Date1", "Link", "Site", 'Deadline', 'Condition']
+
+지식재산바우처_스타트업=df[["Site", "Number", 'Headline', "Link", 'Uploader',"Date1", 'Deadline', 'Condition' ]]
+
+# < 지식재산바우처_스타트업 ------------------------------------------------------------------------------------ 종료 >
+
+# < 지식재산바우처_IP서비스기관모집 --------------------------------------------------------------------------------- 시작 6>
+
+url="https://ripc.org/ipvoucher/ipSrvc/notiIpSrvcList.do"
+page = requests.get(url)
+soup = bs(page.text, "html.parser")
+
+
+# 제목 생성
+a = soup.select('#notiIpSrvcListForm  div div.startup_list  div div.startup_txt  p:nth-child(2)  a')
+s1 = []
+s1 = [td.get_text(strip=True) for td in a]
+a = pd.DataFrame ( s1 )
+# 번호 생성
+b=len(a)
+s1=list(range(1, b+1))
+b = pd.DataFrame ( s1 )
+# 등록일 생성
+c = soup.select ( '#notiIpSrvcListForm  div  div.startup_list  div div.startup_txt  p:nth-child(3)' )
+start_dates = []
+end_dates = []
+s1=[]
+for tag in c:
+    s1.append(tag.text.replace("접수기간", "").replace(":", "").replace(" ", "").replace("\n", "").replace("\r", "").replace("\t", "").replace("\xa0", ""))
+
+for tag in s1 :
+    start_date, end_date = tag.split("~")
+    start_dates.append(start_date)
+    end_dates.append(end_date)
+
+c=pd.DataFrame(start_dates)
+Deadline=pd.DataFrame(end_dates)
+
+time_format = "%Y.%m.%d%H%M"
+s1 = []
+for tag in c[0] :
+    s1.append ( datetime.datetime.strptime ( tag , time_format ) )
+
+c = pd.DataFrame ( s1 )
+
+s1 = []
+for tag in Deadline[0] :
+    s1.append ( datetime.datetime.strptime ( tag , time_format ) )
+
+Deadline = pd.DataFrame ( s1 )
+
+# 조회수생성
+d = soup.select ( '#notiIpSrvcListForm  div  div.startup_list  div div.startup_option  div.view_count' )
+s1 = []
+for tag in d:
+    s1.append(int(tag.text.replace("조회수", "").replace(":", "").replace(" ", "")))
+
+d = pd.DataFrame ( s1 )
+
+# Condition
+e = soup.select ( '#notiIpSrvcListForm  div  div.startup_list  div div.startup_icon.close' )
+s1=[]
+s1 = [td.get_text(strip=True) for td in e]
+e = pd.DataFrame ( s1 )
+
+# a: 제목 생성 b:번호 c:등록일 d: 조회수 Deadline:마감일 e:현재상태
+
+
+df=[]
+
+df= pd.merge(a,b, left_index=True, right_index=True, how='outer')
+df['Uploader'] = ""
+df= pd.merge(df,c, left_index=True, right_index=True, how='outer')
+df['link']= url
+df['Site']= '지식재산바우처_서비스기관모집'
+df= pd.merge(df,Deadline, left_index=True, right_index=True, how='outer')
+df= pd.merge(df,e, left_index=True, right_index=True, how='outer')
+
+df.columns=['Headline', "Number", 'Uploader', "Date1", "Link", "Site", 'Deadline', 'Condition']
+
+지식재산바우처_IP서비스기관모집=df[["Site", "Number", 'Headline', "Link", 'Uploader',"Date1", 'Deadline', 'Condition' ]]
+
+
+
+
+# < 지식재산바우처_IP서비스기관모집 --------------------------------------------------------------------------------- 종료 >
 
 # < KAUTM ----------------------------------------------------------------------------------------------------- 시작 7>
 
@@ -783,8 +871,8 @@ End_result=pd.concat([End_result,Export_voucher])
 RIPC_사업공고=RIPC_사업공고.sort_values('Date1',ascending=False)
 IP_NAVI_사업공고=IP_NAVI_사업공고.sort_values('Date1',ascending=False)
 # IP_NAVI_입찰공고=IP_NAVI_입찰공고.sort_values('Date1',ascending=False)
-# 지식재산바우처_스타트업=지식재산바우처_스타트업.sort_values('Date1',ascending=False)
-# 지식재산바우처_IP서비스기관모집=지식재산바우처_IP서비스기관모집.sort_values('Date1',ascending=False)
+지식재산바우처_스타트업=지식재산바우처_스타트업.sort_values('Date1',ascending=False)
+지식재산바우처_IP서비스기관모집=지식재산바우처_IP서비스기관모집.sort_values('Date1',ascending=False)
 End_result=End_result.sort_values('Date1',ascending=False)
 KAUTM=KAUTM.sort_values('Date1',ascending=False)
 Export_voucher=Export_voucher.sort_values('Date1',ascending=False)
@@ -801,8 +889,8 @@ End_result.to_excel(writer, sheet_name='전체')
 RIPC_사업공고.to_excel(writer, sheet_name='RIPC_사업공고')
 IP_NAVI_사업공고.to_excel(writer, sheet_name='IP_NAVI_사업공고')
 # IP_NAVI_입찰공고.to_excel(writer, sheet_name='IP_NAVI_입찰공고')
-# 지식재산바우처_스타트업.to_excel(writer, sheet_name='지식재산바우처_스타트업')
-# 지식재산바우처_IP서비스기관모집.to_excel(writer, sheet_name='지식재산바우처_IP서비스기관모집')
+지식재산바우처_스타트업.to_excel(writer, sheet_name='지식재산바우처_스타트업')
+지식재산바우처_IP서비스기관모집.to_excel(writer, sheet_name='지식재산바우처_IP서비스기관모집')
 KAUTM.to_excel(writer, sheet_name='KAUTM')
 Export_voucher.to_excel(writer, sheet_name='Export_voucher')
 
