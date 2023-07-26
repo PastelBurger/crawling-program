@@ -10,6 +10,62 @@ import datetime
 import matplotlib.pyplot as plt
 
 
+# -----------------------------------------------------------------------------------------------------------------------------이하는 함수
+
+def pt_middle_ratio (url, df) :
+    # '국가코드'별로 '제1출원인국적'의 개수를 세기
+    counts = df.groupby(['중분류']).size().reset_index(name='개수')
+
+    ## 중분류 비율 그래프 1 -텍스트 포함
+    df_us = counts.copy()
+    # 데이터 설정
+    labels = df_us['중분류']
+    sizes = df_us[['중분류','개수']]
+    sizes = sizes.set_index('중분류')['개수']
+    # 색상 지정
+    colors = ['#C58940','#D4A657','#E5BA73','#FAEAB1','#FAF8F1']  # 색상 지정
+    line_color = 'Black'  # 선의 색상 설정
+    # 원 그래프 그리기
+    plt.figure(figsize=(5, 5))
+    wedges, text, autotext = plt.pie(sizes, labels=labels, colors=colors, autopct=lambda p: '{:.1f}%\n({:.0f})'.format(p, p * sum(sizes) / 100),startangle=90,
+                                     wedgeprops={'edgecolor': line_color, 'linewidth': 0.5, 'linestyle': 'solid'})
+
+    # 원그래프 모양 조정 (동그란 원으로 만들기)
+    plt.axis('equal')
+    # 텍스트 스타일 설정
+    plt.setp(wedges, edgecolor=line_color)
+    plt.setp(text, color=line_color)
+    plt.setp(autotext, color=line_color)
+    plt.savefig ( url + '6_1 중분류 비율_.jpg' , dpi=300 )
+
+
+    ## 중분류 비율 그래프 2 -텍스트 미포함
+    # 데이터 설정
+    labels = df_us['중분류']
+    sizes = df_us[['중분류','개수']]
+    sizes = sizes.set_index('중분류')['개수']
+    # 색상 지정
+    colors = ['#C58940','#D4A657','#E5BA73','#FAEAB1','#FAF8F1']  # 색상 지정
+    line_color = 'Black'  # 선의 색상 설정
+    # 원 그래프 그리기
+    plt.figure(figsize=(5, 5))
+    wedges, text, autotext = plt.pie(sizes, labels=labels, colors=colors, startangle=90,
+                                     wedgeprops={'edgecolor': line_color, 'linewidth': 0.5, 'linestyle': 'solid'})
+
+    # 원그래프 모양 조정 (동그란 원으로 만들기)
+    plt.axis('equal')
+    # 텍스트 스타일 설정
+    plt.setp(wedges, edgecolor=line_color)
+    plt.setp(text, color=line_color)
+    plt.setp(autotext, color=line_color)
+    plt.savefig ( url + '6_2 중분류 비율(텍스트 없음)_.jpg' , dpi=300 )
+
+    ## 엑셀저장
+    s1= counts.copy()
+    total_count = s1['개수'].sum()
+    s1['퍼센트'] = (s1['개수'] / total_count) * 100
+    s1['개수와 퍼센트'] = s1.apply(lambda row: f"{row['개수']} ({row['퍼센트']:.1f}%)", axis=1)
+    s1.to_excel(url + '6_2 중분류 비율.xlsx', index=False)
 
 
 def pt_trend (url, df) :
@@ -135,131 +191,131 @@ def pt_trend (url, df) :
 
 
     # -----------------------------------------------------------------------------------------------------------3. 메인 IPC
-
-    # ipc=list(set(df['메인 IPC']))
+    #
+    # # ipc=list(set(df['메인 IPC']))
+    # # dt=len(df['메인 IPC'])
+    # # s1=[]
+    # # ss=[]
+    # # for tag in ipc :
+    # #       ss=df['메인 IPC'][(df['메인 IPC'] == tag)].count ()
+    # #       s1.append(ss)
+    #
+    # ipc=pd.DataFrame(df['메인 IPC'])
+    # ipc.columns=['ipc']
+    # # ipc['개수']= s1
+    # # ipc.columns=['ipc','개수']
+    #
+    # s1=[]
+    # for tag in ipc['ipc'] :
+    #     s1.append(tag[0:4])
+    #
+    # ipc['대분류']= s1
+    # df_2=ipc   # ----------IPC 분류 개수
+    # # -----------------------------------
+    # s1=[]
+    # s1=list(set(df_2['대분류']))
+    # s2=[]
+    # ss=[]
+    # for tag in s1 :
+    #       ss=df_2['대분류'][(df_2['대분류'] == tag)].count ()
+    #       s2.append(ss)
+    #
+    # s3=pd.DataFrame(s1)
+    # s3['개수']= s2
+    # s3.columns=['대분류','개수']
+    # s3=s3.sort_values('개수',ascending=False)
+    # df_23=pd.DataFrame.copy(s3)
+    #
+    # df_23.to_excel(url+'3.IPC대분류개수(엑셀).xlsx')
+    #
+    # s3=s3.reset_index()
+    # t=[]
+    # t = sum(s3['개수'][range(4,len(s3['개수']))])
+    # s3['개수'][4] =t
+    #
+    # s4= s3.loc[0:4,:]
+    # ss=[]
+    # for tag in s4['개수'] :
+    #     ss.append(round(tag/sum(s4['개수'])*100,2))
+    #
+    # s4['퍼센트']=ss
+    #
+    # df_2_1=s4
+    # df_2_1['대분류'][4]='기타'
+    # df_2_1=df_2_1.sort_values('개수',ascending=False)
+    # df_2_1=df_2_1.reset_index()
+    # df_2_1=df_2_1.loc[:, ['대분류','개수','퍼센트']]
+    # df_2_1.columns=['대분류','개수','퍼센트']
+    #
+    # # ------------------------------------
+    # df24=df_2[df_2['대분류']==df_2_1['대분류'][1]]
+    #
+    # ipc=list(set(df24['ipc']))
     # dt=len(df['메인 IPC'])
     # s1=[]
     # ss=[]
     # for tag in ipc :
     #       ss=df['메인 IPC'][(df['메인 IPC'] == tag)].count ()
     #       s1.append(ss)
-
-    ipc=pd.DataFrame(df['메인 IPC'])
-    ipc.columns=['ipc']
+    #
+    # ipc=pd.DataFrame(ipc)
+    # ipc.columns=['ipc']
     # ipc['개수']= s1
     # ipc.columns=['ipc','개수']
-
-    s1=[]
-    for tag in ipc['ipc'] :
-        s1.append(tag[0:4])
-
-    ipc['대분류']= s1
-    df_2=ipc   # ----------IPC 분류 개수
-    # -----------------------------------
-    s1=[]
-    s1=list(set(df_2['대분류']))
-    s2=[]
-    ss=[]
-    for tag in s1 :
-          ss=df_2['대분류'][(df_2['대분류'] == tag)].count ()
-          s2.append(ss)
-
-    s3=pd.DataFrame(s1)
-    s3['개수']= s2
-    s3.columns=['대분류','개수']
-    s3=s3.sort_values('개수',ascending=False)
-    df_23=pd.DataFrame.copy(s3)
-
-    df_23.to_excel(url+'3.IPC대분류개수(엑셀).xlsx')
-
-    s3=s3.reset_index()
-    t=[]
-    t = sum(s3['개수'][range(4,len(s3['개수']))])
-    s3['개수'][4] =t
-
-    s4= s3.loc[0:4,:]
-    ss=[]
-    for tag in s4['개수'] :
-        ss.append(round(tag/sum(s4['개수'])*100,2))
-
-    s4['퍼센트']=ss
-
-    df_2_1=s4
-    df_2_1['대분류'][4]='기타'
-    df_2_1=df_2_1.sort_values('개수',ascending=False)
-    df_2_1=df_2_1.reset_index()
-    df_2_1=df_2_1.loc[:, ['대분류','개수','퍼센트']]
-    df_2_1.columns=['대분류','개수','퍼센트']
-
-    # ------------------------------------
-    df24=df_2[df_2['대분류']==df_2_1['대분류'][1]]
-
-    ipc=list(set(df24['ipc']))
-    dt=len(df['메인 IPC'])
-    s1=[]
-    ss=[]
-    for tag in ipc :
-          ss=df['메인 IPC'][(df['메인 IPC'] == tag)].count ()
-          s1.append(ss)
-
-    ipc=pd.DataFrame(ipc)
-    ipc.columns=['ipc']
-    ipc['개수']= s1
-    ipc.columns=['ipc','개수']
-    s1=ipc
-    s1=s1.sort_values('개수',ascending=False)
-    s1=s1.reset_index()
-    ss=[]
-    for tag in s1['개수'] :
-        ss.append(round(tag/sum(s1['개수'])*100,2))
-
-    s1['퍼센트']=ss
-    s2=s1.loc[0:3,:]
-    df_2_2=s2 # ----  iPC세부분류
-
-
-
-    #-------------------------- 그래프그리기
-    # 1. IPC 대분류 그리기
-    # 그래프 외곽선
-    wedgeprops = {
-        'edgecolor': 'black',
-        'linestyle': '-',
-        'linewidth': 0.5,
-        'width': 0.7
-    }
-    color=['#C58940','#D4A657','#E5BA73','#FAEAB1','#FAF8F1']
-
-    explode = np.zeros(len(df_2_1['개수']))
-    explode[np.argmax(df_2_1['개수'])] = 0.1  # 가장 큰 값에 대한 explode 값 설정
-
-    plt.figure(figsize=(5, 5))
-    plt.pie(df_2_1['개수'], labels=df_2_1['대분류'], startangle=90, explode=explode, autopct='%.1f%%',counterclock=False,wedgeprops=wedgeprops,colors=color,shadow=True)
-    # plt.show()
-
-    plt.savefig(url+'3.IPC분류.jpg',dpi=300)
-
-    # 2. IPC 세부 분류 그리기
-    # df_2_2=sort_values('개수')
-    plt.figure(figsize=(5, 5))
-    bar = plt.bar(df_2_2['ipc'],df_2_2['개수'], color= color)
-    plt.grid(True, axis='y',alpha=0.5, linestyle='--')
-    # # plt.xticks(df_1_1['출원연도'], rotation=45)
-    plt.gca().spines['right'].set_visible(False) #오른쪽 테두리 제거
-    plt.gca().spines['top'].set_visible(False) #위 테두리 제거
-    # plt.gca().spines['left'].set_visible(False) #왼쪽 테두리 제거
-
-
-    # 숫자 넣는 부분
-    t=0
-    for rect in bar:
-        height = rect.get_height()
-        plt.text(rect.get_x() + rect.get_width()/2.0, height, str(df_2_2['퍼센트'][t])+'%', ha='center', va='bottom', size = 10)
-        t=t+1
-
-    # plt.show()
-
-    plt.savefig(url+'3.1_IPC소분류.jpg',dpi=300)
+    # s1=ipc
+    # s1=s1.sort_values('개수',ascending=False)
+    # s1=s1.reset_index()
+    # ss=[]
+    # for tag in s1['개수'] :
+    #     ss.append(round(tag/sum(s1['개수'])*100,2))
+    #
+    # s1['퍼센트']=ss
+    # s2=s1.loc[0:3,:]
+    # df_2_2=s2 # ----  iPC세부분류
+    #
+    #
+    #
+    # #-------------------------- 그래프그리기
+    # # 1. IPC 대분류 그리기
+    # # 그래프 외곽선
+    # wedgeprops = {
+    #     'edgecolor': 'black',
+    #     'linestyle': '-',
+    #     'linewidth': 0.5,
+    #     'width': 0.7
+    # }
+    # color=['#C58940','#D4A657','#E5BA73','#FAEAB1','#FAF8F1']
+    #
+    # explode = np.zeros(len(df_2_1['개수']))
+    # explode[np.argmax(df_2_1['개수'])] = 0.1  # 가장 큰 값에 대한 explode 값 설정
+    #
+    # plt.figure(figsize=(5, 5))
+    # plt.pie(df_2_1['개수'], labels=df_2_1['대분류'], startangle=90, explode=explode, autopct='%.1f%%',counterclock=False,wedgeprops=wedgeprops,colors=color,shadow=True)
+    # # plt.show()
+    #
+    # plt.savefig(url+'3.IPC분류.jpg',dpi=300)
+    #
+    # # 2. IPC 세부 분류 그리기
+    # # df_2_2=sort_values('개수')
+    # plt.figure(figsize=(5, 5))
+    # bar = plt.bar(df_2_2['ipc'],df_2_2['개수'], color= color)
+    # plt.grid(True, axis='y',alpha=0.5, linestyle='--')
+    # # # plt.xticks(df_1_1['출원연도'], rotation=45)
+    # plt.gca().spines['right'].set_visible(False) #오른쪽 테두리 제거
+    # plt.gca().spines['top'].set_visible(False) #위 테두리 제거
+    # # plt.gca().spines['left'].set_visible(False) #왼쪽 테두리 제거
+    #
+    #
+    # # 숫자 넣는 부분
+    # t=0
+    # for rect in bar:
+    #     height = rect.get_height()
+    #     plt.text(rect.get_x() + rect.get_width()/2.0, height, str(df_2_2['퍼센트'][t])+'%', ha='center', va='bottom', size = 10)
+    #     t=t+1
+    #
+    # # plt.show()
+    #
+    # plt.savefig(url+'3.1_IPC소분류.jpg',dpi=300)
 
     # -----------------------------------------------------------------------------------------------------------4. 경쟁사 뽑기
     # ----------------------------------------------------------------------------------------------4.1 출원인별 그래프
@@ -659,8 +715,6 @@ def pt_trend (url, df) :
         plt.legend(loc='upper left')
         plt.savefig ( url + '5_3 내외국인 연도별 동향_' + tag + '.jpg' , dpi=300 )
 
-
-
 def pre_pt_trend (url, df) :
     # ------------------------------------------------------------------------------------------------1. 연도별 출원 동향 그래프
     df_1=df[["대표출원인",'출원일']]
@@ -780,7 +834,6 @@ def pre_pt_trend (url, df) :
 
     plt.savefig ( url + '0_4_2_0 상위 출원인 10개 전체 그래프'+'.jpg' , dpi=300 )
 
-
 def df_check (df) :
     if '대표출원인' not in df.columns :
         print ( "대표출원인 컬럼이 없습니다." )
@@ -806,9 +859,6 @@ def df_check (df) :
             print ( "제1출원인국적에 '-'가 있습니다." )
             exit ()  # 프로그램 종료
 
-
-
-
 def delete_duplicate (url, file_name) :
 
     df=pd.read_excel(url+file_name)
@@ -824,6 +874,9 @@ def delete_duplicate (url, file_name) :
     df.drop(index=duplicate_indices[duplicate_indices != random_index], inplace=True)
 
     df.to_excel(url+'base1.xlsx')
+
+
+
 
 
 

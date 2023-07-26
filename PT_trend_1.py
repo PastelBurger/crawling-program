@@ -14,8 +14,13 @@ from Functions import pt_trend
 from Functions import pre_pt_trend
 from Functions import df_check
 from Functions import delete_duplicate
+from Functions import pt_middle_ratio
+
 # "C:\작업서류G\작업서류\3.정부사업관련\8_IP_사업수행\11. 아이티엔제이\가검색\0.Base.xlsx"
-url="C:/작업서류G/작업서류/3.정부사업관련/8_IP_사업수행/11. 아이티엔제이/가검색/"
+url="C:/작업서류G/작업서류/3.정부사업관련/8_IP_사업수행/10_IP-나래_시프트포/1. 준비자료/7회차준비자료/세부분석그래프/"
+# "C:\작업서류G\작업서류\3.정부사업관련\8_IP_사업수행\10_IP-나래_시프트포\1. 준비자료\7회차준비자료\세부분석그래프\0.Base.xlsx"
+# "C:\작업서류G\작업서류\3.정부사업관련\8_IP_사업수행\11. 아이티엔제이\가검색"
+
 file_name= "0.Base.xlsx"
 df=pd.read_excel(url+file_name)
 # 분석 진행할 것인지 결정(1 진행, 0 미진행)
@@ -41,6 +46,7 @@ if Switch == 1:
 # 중분류 그래프
 
 if '중분류' in df.columns and Switch==1 :
+    pt_middle_ratio(url, df)
     # 소분류 컬럼이 존재하는 경우
     midium_categories = df['중분류'].tolist()
     midium_categories = list(set(midium_categories))
