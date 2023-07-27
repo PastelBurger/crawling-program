@@ -12,8 +12,52 @@ import matplotlib.pyplot as plt
 
 # -----------------------------------------------------------------------------------------------------------------------------이하는 함수
 
+def pt_applicant_middle_ratio(url , df) :
+    df_4_2 = df[["대표출원인" , '중분류']]
+    s1 = []
+    s1 = counts = df_4_2.groupby ( '대표출원인' )['중분류'].value_counts ().unstack ( fill_value=0 )
+    s1['합계1'] = s1.iloc[: , :].sum ( axis=1 )
+    s1 = s1.sort_values ( by='합계1' , ascending=False )
+    s1 = s1[['합계1'] + list ( s1.columns[:-1] )]
+
+    s1.to_excel ( url + '4_2_2.출원인 중분류별 개수.xlsx' , index=True )
+
+    # 합계의 개수별로 상위 10개의 대표출원인 선택
+    top_10 = s1.nlargest ( 10 , '합계1' )
+
+    # 데이터 설정
+    top_10_1 = top_10.drop ( top_10.columns[0] , axis=1 )
+    countries = top_10_1.columns[:]  # 국가 코드 리스트
+    application = top_10_1.index
+
+    # 그래프 설정
+    plt.figure ( figsize=(8 , 6) )  # 그래프 크기 설정
+    colors = ['#4C3D3D' , '#83764F' , '#C07F00' , '#FFD95A' , '#FFF7D4']
+
+    s1 = []
+    s2 = pd.Series ( 0 , index=application )
+    s3 = 0
+
+    for tag in countries :
+        s1 = top_10_1[tag]
+        plt.barh ( application , s1 , left=s2 , color=colors[s3] )
+        s2 += s1
+        s3 += 1
+
+    # y축 범례 폰트 사이즈 설정
+    max_label_length = max ( [len ( label ) for label in application] )
+    font_size = 17 - (max_label_length // 2)
+    plt.yticks ( fontsize=font_size )
+    # 그래프 상하 뒤집기
+    plt.gca ().invert_yaxis ()
+    # 그래프 배경에 점선 추가
+    plt.grid ( True , axis='x' , alpha=0.5 , linestyle='--' )
+    plt.subplots_adjust ( right=0.8 )
+
+    plt.savefig ( url + '4_2_2 상위 출원인 10개 전체 그래프_중분류표시' + '.jpg' , dpi=300 )
+
 def pt_middle_ratio (url, df) :
-    # '국가코드'별로 '제1출원인국적'의 개수를 세기
+    # '국가코드'별로 '중분류'의 개수를 세기
     counts = df.groupby(['중분류']).size().reset_index(name='개수')
 
     ## 중분류 비율 그래프 1 -텍스트 포함
