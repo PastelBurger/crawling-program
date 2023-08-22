@@ -31,7 +31,9 @@ def func_create_Condition(list) :
 
 # <IP_NAVI_사업공고&입찰공고------------------------------------------------------------------------------------시작 1>
 
-driver = webdriver.Chrome()
+url_chrome='C:/Users/kaith/Documents/chromedriver/chromedriver.exe'
+
+driver = webdriver.Chrome(url_chrome)
 driver.implicitly_wait(3)
 driver.get('http://www.ip-navi.or.kr/ipnavi/board/boardList.navi?boardCode=B00001')
 time.sleep(1)
@@ -175,7 +177,7 @@ IP_NAVI_사업공고.columns=["Site","Number",'Headline',"Link",'Uploader',"Date
 
 # < RIPC_입찰공고 - -----------------------------------------------------------------------------------시작 2>
 
-driver = webdriver.Chrome()
+driver = webdriver.Chrome(url_chrome)
 driver.implicitly_wait(3)
 driver.get('https://pms.ripc.org/pms/biz/applicant/notice/list.do')
 time.sleep(1)
@@ -705,7 +707,7 @@ KAUTM=df[["Site", "Number", 'Headline', "Link", 'Uploader',"Date1", 'Deadline', 
 # < KAUTM --------------------------------------------------------------------------------- 종료 7>
 # < 수출바우처 공지 - -----------------------------------------------------------------------------------시작 8>
 
-driver = webdriver.Chrome()
+driver = webdriver.Chrome(url_chrome)
 driver.implicitly_wait(3)
 driver.get('https://www.exportvoucher.com/portal/board/boardList?bbs_id=1&active_menu_cd=EZ005004000')
 time.sleep(1)
