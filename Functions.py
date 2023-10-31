@@ -55,6 +55,7 @@ def pt_applicant_middle_ratio(url , df) :
     plt.subplots_adjust ( right=0.8 )
 
     plt.savefig ( url + '4_2_2 상위 출원인 10개 전체 그래프_중분류표시' + '.jpg' , dpi=300 )
+    plt.close()
 
 def pt_middle_ratio (url, df) :
     # '국가코드'별로 '중분류'의 개수를 세기
@@ -81,7 +82,7 @@ def pt_middle_ratio (url, df) :
     plt.setp(text, color=line_color)
     plt.setp(autotext, color=line_color)
     plt.savefig ( url + '6_1 중분류 비율_.jpg' , dpi=300 )
-
+    plt.close()
 
     ## 중분류 비율 그래프 2 -텍스트 미포함
     # 데이터 설정
@@ -93,8 +94,7 @@ def pt_middle_ratio (url, df) :
     line_color = 'Black'  # 선의 색상 설정
     # 원 그래프 그리기
     plt.figure(figsize=(5, 5))
-    wedges, text, autotext = plt.pie(sizes, labels=labels, colors=colors, startangle=90,
-                                     wedgeprops={'edgecolor': line_color, 'linewidth': 0.5, 'linestyle': 'solid'})
+    wedges, text = plt.pie(sizes, labels=labels, colors=colors, startangle=90,wedgeprops={'edgecolor': line_color, 'linewidth': 0.5, 'linestyle': 'solid'})
 
     # 원그래프 모양 조정 (동그란 원으로 만들기)
     plt.axis('equal')
@@ -103,6 +103,7 @@ def pt_middle_ratio (url, df) :
     plt.setp(text, color=line_color)
     plt.setp(autotext, color=line_color)
     plt.savefig ( url + '6_2 중분류 비율(텍스트 없음)_.jpg' , dpi=300 )
+    plt.close()
 
     ## 엑셀저장
     s1= counts.copy()
@@ -131,8 +132,8 @@ def pt_trend (url, df) :
 
     df_1['출원일']= s1
 
-
-    df_1['출원연도']=df_1['출원일'].dt.strftime('%Y')
+    df_1['출원일'] = pd.to_datetime(df_1['출원일'], format=time_format)
+    df_1.loc[:, '출원연도'] = df_1['출원일'].dt.year
 
     s1 = []
     for tag in df_1['출원연도']:
@@ -181,6 +182,7 @@ def pt_trend (url, df) :
         plt.text(rect.get_x() + rect.get_width()/2.0, height,  height, ha='center', va='bottom', size = 10)
 
     plt.savefig(url+'1.전체출원동향.jpg',dpi=300)
+    plt.close()
 
     # ----------------------------------------------------------------------------------------1, 2 연도별/국가별 출원 동향 그래프
 
@@ -232,6 +234,7 @@ def pt_trend (url, df) :
         # plt.gca().spines['top'].set_visible(False) #위 테두리 제거
         # plt.gca().spines['left'].set_visible(False) #왼쪽 테두리 제거
         plt.savefig ( url + '2.국가별출원동향_' + tag + '.jpg' , dpi=300 )
+        plt.close()
 
 
     # -----------------------------------------------------------------------------------------------------------3. 메인 IPC
@@ -371,7 +374,8 @@ def pt_trend (url, df) :
           s1.append ( datetime.datetime.strptime ( tag , time_format ) )
 
     df_4.loc[:,'출원일']= s1
-    df_4.loc[:,'출원연도']=df_4['출원일'].dt.strftime('%Y')
+    df_4['출원일'] = pd.to_datetime(df_4['출원일'], format=time_format)
+    df_4.loc[:,'출원연도']=df_4['출원일'].dt.year
 
     s1 = []
     s1= counts = df_4.groupby('대표출원인')['출원연도'].value_counts().unstack(fill_value=0)
@@ -416,7 +420,8 @@ def pt_trend (url, df) :
         # 그래프 레이블, 타이틀 설정
         plt.xticks ( rotation=45 )
         plt.grid ( True , axis='y' , alpha=0.5 , linestyle='--' )
-        plt.savefig ( url + '4_1 출원인별그래프_' +str(ss)+출원인 + '.jpg' , dpi=300 )
+        plt.savefig ( url + '4_1_' +str(ss)+출원인 + '.jpg' , dpi=300 )
+        plt.close()
         ss+=1
 
     # 그래프 그리기
@@ -431,7 +436,8 @@ def pt_trend (url, df) :
         # 그래프 레이블, 타이틀 설정
         plt.xticks ( rotation=45 )
         plt.grid ( True , axis='y' , alpha=0.5 , linestyle='--' )
-        plt.savefig ( url + '4_1 출원인별그래프_' +str(ss)+ 출원인 +'(전체없음)'+'.jpg' , dpi=300 )
+        plt.savefig ( url + '4_1 _' +str(ss)+ 출원인 +'(전체없음)'+'.jpg' , dpi=300 )
+        plt.close()
         ss+=1
 
     from matplotlib import font_manager, rc
@@ -465,6 +471,7 @@ def pt_trend (url, df) :
     plt.yticks(fontsize=font_size)
 
     plt.savefig ( url + '4_2_0 상위 출원인 10개 전체 그래프'+'.jpg' , dpi=300 )
+    plt.close()
 
 
     # ----------------------------------------------------------------------------------------------4.2 출원인 국가별 개수
@@ -514,6 +521,7 @@ def pt_trend (url, df) :
     plt.subplots_adjust(right=0.8)
 
     plt.savefig ( url + '4_2_1 상위 출원인 10개 전체 그래프_국가표시'+'.jpg' , dpi=300 )
+    plt.close()
 
 
     # ----------------------------------------------------------------------------------------------4.3 국가별 출원인 분석
@@ -531,7 +539,8 @@ def pt_trend (url, df) :
               s1.append ( datetime.datetime.strptime ( tag , time_format ) )
 
         df_4.loc[:,'출원일']= s1
-        df_4.loc[:,'출원연도']=df_4['출원일'].dt.strftime('%Y')
+        df_4['출원일'] = pd.to_datetime(df_4['출원일'], format=time_format)
+        df_4.loc[:, '출원연도'] = df_4['출원일'].dt.year
 
         s1 = []
         s1= counts = df_4.groupby('대표출원인')['출원연도'].value_counts().unstack(fill_value=0)
@@ -576,7 +585,8 @@ def pt_trend (url, df) :
             # 그래프 레이블, 타이틀 설정
             plt.xticks ( rotation=45 )
             plt.grid ( True , axis='y' , alpha=0.5 , linestyle='--' )
-            plt.savefig ( url + '4_1_'+unique_tag+' 출원인별그래프_' + str(ss)+출원인 + '.jpg' , dpi=300 )
+            plt.savefig ( url + '4_1_'+unique_tag+'_' + str(ss)+출원인 + '.jpg' , dpi=300 )
+            plt.close()
             ss+=1
 
         # 그래프 그리기
@@ -591,7 +601,8 @@ def pt_trend (url, df) :
             # 그래프 레이블, 타이틀 설정
             plt.xticks ( rotation=45 )
             plt.grid ( True , axis='y' , alpha=0.5 , linestyle='--' )
-            plt.savefig ( url + '4_1_'+unique_tag+' 출원인별그래프_' +str(ss)+ 출원인 +'(전체없음)'+'.jpg' , dpi=300 )
+            plt.savefig ( url + '4_1_'+unique_tag+'_' +str(ss)+ 출원인 +'(전체없음)'+'.jpg' , dpi=300 )
+            plt.close()
             ss+=1
 
         from matplotlib import font_manager, rc
@@ -625,22 +636,32 @@ def pt_trend (url, df) :
         plt.yticks(fontsize=font_size)
 
         plt.savefig ( url + '4_2_1_'+unique_tag+' 상위 출원인 10개 전체 그래프_'+'.jpg' , dpi=300 )
+        plt.close()
 
 
         # -----------------------------------------------------------------------------------------------------------5. 내외국인
 
+
+    # 합계의 개수별로 상위 10개의 대표출원인 선택
+    top_10 = s1.nlargest(10, '합계1')
+    top_30 = s1.nlargest(30, '합계1')
+
+    # 선택된 10개의 대표출원인의 연도별 개수와 마지막 행 포함하는 테이블 생성
+    df_4_1 = s1.loc[top_10.index, :]
+    df_4_1.loc['합계2'] = s1.iloc[-1]
+
+
     # ----------------------------5_1. 내외국인비율
 
     df_5=df[["대표출원인",'국가코드', '출원일','제1출원인국적' ]]
-
-
     s1 = []
     time_format ="%Y.%m.%d"
     for tag in df_5['출원일']:
           s1.append ( datetime.datetime.strptime ( tag , time_format ) )
 
     df_5['출원일']= s1
-    df_5['출원연도']=df_5['출원일'].dt.strftime('%Y')
+    df_5['출원일'] = pd.to_datetime(df_5['출원일'], format=time_format)
+    df_5['출원연도']=df_5['출원일'].dt.year
 
     def get_nationality(row):
         if row['국가코드'] == 'EP':
@@ -683,9 +704,10 @@ def pt_trend (url, df) :
         plt.setp(wedges, edgecolor=line_color)
         plt.setp(text, color=line_color)
         plt.setp(autotext, color=line_color)
-        plt.savefig ( url + '5_1 내외국인 비율_'+ tag +'.jpg' , dpi=300 )
+        plt.savefig ( url + '5_1_'+ tag +'_내외국인 비율.jpg' , dpi=300 )
+        plt.close()
 
-    # ----------------------------5_2. 외국인 비율
+        # ----------------------------5_2. 외국인 비율
 
     foreigners = df_5.loc[df_5['내외국인'] == '외국인']
 
@@ -729,7 +751,8 @@ def pt_trend (url, df) :
         plt.setp(wedges, edgecolor=line_color)
         plt.setp(text, color=line_color)
         plt.setp(autotext, color=line_color)
-        plt.savefig ( url + '5_2 외국인 비율_'+ tag +'.jpg' , dpi=300 )
+        plt.savefig ( url + '5_1_'+ tag +'_외국인 비율.jpg' , dpi=300 )
+        plt.close()
 
 
     # -------------------------------5_2. 내외국인 출원동향
@@ -757,7 +780,9 @@ def pt_trend (url, df) :
         plt.grid(True, axis='y',alpha=0.5, linestyle='--')
         plt.xticks( rotation=45)
         plt.legend(loc='upper left')
-        plt.savefig ( url + '5_3 내외국인 연도별 동향_' + tag + '.jpg' , dpi=300 )
+        plt.savefig ( url + '5_1_' + tag +  '_내외국인 연도별 동향.jpg' , dpi=300 )
+        plt.close()
+
 
 def pre_pt_trend (url, df) :
     # ------------------------------------------------------------------------------------------------1. 연도별 출원 동향 그래프
@@ -770,8 +795,8 @@ def pre_pt_trend (url, df) :
 
     df_1['출원일']= s1
 
-
-    df_1['출원연도']=df_1['출원일'].dt.strftime('%Y')
+    df_1['출원일'] = pd.to_datetime(df_1['출원일'], format=time_format)
+    df_1.loc[:, '출원연도'] = df_1['출원일'].dt.year
 
     s1 = []
     for tag in df_1['출원연도']:
@@ -820,6 +845,7 @@ def pre_pt_trend (url, df) :
         plt.text(rect.get_x() + rect.get_width()/2.0, height,  height, ha='center', va='bottom', size = 10)
 
     plt.savefig(url+'0_pre_전체출원동향.jpg',dpi=300)
+    plt.close()
 
     # -----------------------------------------------------------------------------------------------------------4. 경쟁사 뽑기
     # ----------------------------------------------------------------------------------------------4.1 출원인별 그래프
@@ -831,7 +857,8 @@ def pre_pt_trend (url, df) :
           s1.append ( datetime.datetime.strptime ( tag , time_format ) )
 
     df_4.loc[:,'출원일']= s1
-    df_4.loc[:,'출원연도']=df_4['출원일'].dt.strftime('%Y')
+    df_4['출원일'] = pd.to_datetime(df_4['출원일'], format=time_format)
+    df_4.loc[:, '출원연도'] = df_4['출원일'].dt.year
 
     s1 = []
     s1= counts = df_4.groupby('대표출원인')['출원연도'].value_counts().unstack(fill_value=0)
@@ -877,6 +904,7 @@ def pre_pt_trend (url, df) :
     plt.yticks(fontsize=font_size)
 
     plt.savefig ( url + '0_4_2_0 상위 출원인 10개 전체 그래프'+'.jpg' , dpi=300 )
+    plt.close()
 
 def df_check (df) :
     if '대표출원인' not in df.columns :

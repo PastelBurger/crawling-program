@@ -59,7 +59,7 @@ def function_IP_NAVI_사업공고() :
     page = driver.page_source
     soup = bs(page, "html.parser")
     # 헤드라인
-    a = soup.select ( '#frm > div > div.board_wrap > table > tbody > tr> td.align_L > a' )
+    a = soup.select ( '#frm > div > div.board_wrap > table > tbody > tr> td.align_L ' )
     s1 = []
     for tag in a :
         s1.append ( tag.text )
@@ -69,10 +69,7 @@ def function_IP_NAVI_사업공고() :
             tag.replace ( '\n' , '' ).replace ( '\t' , '' ).replace ( '  ' , '' ).replace ( '\xa0' , '' ).replace ( '\r' ,'' ) )
     a = pd.DataFrame ( s2 )
     # 링크
-    b = soup.select ( '#frm > div > div.board_wrap > table > tbody > tr> td.align_L > a' )
-    s1 = []
-    for tag in b :
-        s1.append ( tag["href"] )
+    s1 = [element['onclick'] for element in soup.find_all('tr', attrs={'onclick': True})]
     s1 = pd.DataFrame ( s1 )
     v_split = s1[0].str.split ( '(' )
     s1 = pd.DataFrame ( v_split.str.get ( 1 ) )
@@ -80,10 +77,10 @@ def function_IP_NAVI_사업공고() :
     s1 = pd.DataFrame ( v_split.str.get ( 1 ) )
     s2 = []
     for tag in s1[0] :
-        s2.append ( tag[1 :-2] )
+        s2.append ( tag[2 :-2] )
     s3=[]
     for tag in s2:
-        s3.append ( "http://www.ip-navi.or.kr/ipnavi/board/boardDetail.navi?boardCode=B00001&boardSeq="+tag )
+        s3.append ( "https://www.ip-navi.or.kr/ipnavi/board/boardDetail.navi?boardCode=B00001&boardSeq="+tag+"&currentPageNo=1")
     b = pd.DataFrame ( s3 )
     b.rename(columns={ 0: 'b'}, inplace=True)
     # Uploader
@@ -101,7 +98,7 @@ def function_IP_NAVI_사업공고() :
     d = pd.DataFrame ( s1 )
     d.rename(columns={ 0: 'd'}, inplace=True)
     # 조회수
-    e = soup.select ( '#frm > div > div.board_wrap > table > tbody > tr> td:nth-child(3)' )
+    e = soup.select ( '#frm > div > div.board_wrap > table > tbody > tr > td.views' )
     s1 = []
     for tag in e :
         s1.append ( tag.text )
@@ -961,8 +958,5 @@ for tag in wb.sheetnames:
     ws.column_dimensions['I'].width=10
 
 wb.save('C:/작업서류SG/작업서류/0.Crawling/정부사업크롤링('+ctstr+').xlsx')
-
-# ------------------------------------------------------------------------------
-import subprocess
 
 
