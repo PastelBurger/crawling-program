@@ -1,4 +1,3 @@
-
 import requests
 import pandas as pd
 import numpy as np
@@ -8,296 +7,89 @@ from selenium import webdriver
 import time
 import openpyxl
 import datetime
-from datetime import timedelta
+import matplotlib.pyplot as plt
+# "C:\작업서류G\작업서류\3.정부사업관련\8_IP_사업수행\11. 아이티엔제이\가검색\0.Base.xlsx"
+url="C:/작업서류SG/작업서류/3.정부사업관련/8_IP_사업수행/17.IP나래_시제/실험용/"
+# "C:\작업서류SG\작업서류\3.정부사업관련\8_IP_사업수행\17.IP나래_시제\실험용\0.Base.xlsx"
+# "C:\작업서류SG\작업서류\3.정부사업관련\8_IP_사업수행\11. 아이티엔제이\가검색\0.Base.xlsx"
+# "C:\작업서류G\작업서류\3.정부사업관련\8_IP_사업수행\10_IP-나래_시프트포\1. 준비자료\7회차준비자료\세부분석그래프\0.Base.xlsx"
+# "C:\작업서류G\작업서류\3.정부사업관련\8_IP_사업수행\11. 아이티엔제이\가검색"
+# "C:\작업서류G\작업서류\3.정부사업관련\8_IP_사업수행\11. 아이티엔제이\가검색\0.Base_1.xlsx"
+file_name= "0.Base.xlsx"
+df=pd.read_excel(url+file_name)
+
+df_7 = df[["대표출원인", '출원일','국가코드']]
+s1 = []
+time_format = "%Y.%m.%d"
+for tag in df_7['출원일']:
+    s1.append(datetime.datetime.strptime(tag, time_format))
+
+df_7.loc[:, '출원일'] = s1
+df_7['출원일'] = pd.to_datetime(df_7['출원일'], format=time_format)
+df_7.loc[:, '출원연도'] = df_7['출원일'].dt.year
+
+s1 = []
+s1 = counts = df_7.groupby('대표출원인')['출원연도'].value_counts().unstack(fill_value=0)
+s1['합계1'] = s1.iloc[:, :].sum(axis=1)
+s1 = s1.sort_values(by='합계1', ascending=False)
+s1 = s1[['합계1'] + list(s1.columns[:-1])]
+year_totals = s1.iloc[:, 1:].sum()
+s1.loc['합계2'] = year_totals
+
+# 합계의 개수별로 상위 10개의 대표출원인 선택
+top_10 = s1.nlargest(10, '합계1')
+s2=pd.DataFrame(top_10.index)
+sss=0
+
+for tag in s2["대표출원인"] :
+    sss+=1
+    tag_rows = df_7[df_7['대표출원인'] == tag]
+    s3 = counts = tag_rows.groupby('국가코드')['출원연도'].value_counts().unstack(fill_value=0)
+
+    # 데이터프레임의 첫 번째 인덱스와 마지막 인덱스 추출
+    first_index = s3.columns[0]
+    last_index = s3.columns[-1]
+    index_to_add = [int(i) for i in range(first_index, last_index)]
+    for col in index_to_add:
+        if col not in s3.columns:
+            s3[col] = 0
+
+    s3 = s3.sort_index(axis=1)
+
+    s3['합계1'] = s3.iloc[:, :].sum(axis=1)
+    s3 = s3.sort_values(by='합계1', ascending=False)
+    s3 = s3[['합계1'] + list(s3.columns[:-1])]
+    year_totals = s3.iloc[:, :].sum()
+    s3.loc['합계2'] = year_totals
+
+    # ----------------------------------------------------------------------그래프
+    # 그래프 설정
+    plt.figure(figsize=(10, 6))  # 그래프 크기 설정
+
+    # 국가코드 리스트 생성
+    국가코드 = s3.index.tolist()
+    출원연도 = s3.columns[1:].tolist()
+
+    # color=['#C58940','#D4A657','#E5BA73','#FAEAB1','#FAF8F1']
+    # 그래프 그리기
+    ss = 1
+    for 국가 in 국가코드:
+        plt.figure(figsize=(10, 6))  # 그래프 크기 설정
+        개수_합계2 = s3.loc['합계2', 출원연도]
+        plt.plot(출원연도, 개수_합계2, linestyle='--', marker='o', label='합계2', color='#C58940')
+        # 대표출원인 열만 선택
+        개수 = s3.loc[국가, 출원연도]
+        # 대표출원인은 실선 꺾은선 그래프로 그리기
+        plt.plot(출원연도, 개수, linestyle='-', marker='o', label=국가, color='#D4A657')
+        # 음영 처리
+        plt.fill_between(출원연도, 개수, 0, color='gray', alpha=0.3)
+        # 그래프 레이블, 타이틀 설정
+        plt.xticks(출원연도, rotation=45)
+        plt.yticks(range(int(min(개수_합계2)), int(max(개수_합계2)) + 1))
+        plt.grid(True, axis='y', alpha=0.5, linestyle='--')
+        plt.savefig(url + '7_1_'+str(sss)+'_'+tag+'_' + 국가 + '.jpg', dpi=300)
+        plt.close()
+        ss += 1
 
 
-# < IP실시간뉴스 --------------------------------------------------------------------------------- 시작 1>
 
-
-options = webdriver.ChromeOptions()
-options.add_experimental_option('excludeSwitches', ['enable-logging'])
-driver = webdriver.Chrome(options=options)
-driver.implicitly_wait(3)
-driver.get('http://www.ip-navi.or.kr/ipnavi/ref/boardList.navi?boardCode=B00017')
-time.sleep(1)
-
-def function_IP_news() :
-    page = driver.page_source
-    soup = bs(page, "html.parser")
-    #헤드라인
-    a = soup.select('body > div.container > div.board_wrap > table > tbody > tr> td.align_L > a')
-    s1=[]
-    for tag in a :
-        s1.append(tag.text)
-    s2=[]
-    for tag in s1 :
-        s2.append(tag.replace('\n','').replace('\t','').replace('  ','').replace('\xa0','').replace('\r',''))
-
-    a= pd.DataFrame(s2)
-
-    #링크
-    b = soup.select('body > div.container > div.board_wrap > table > tbody > tr> td.align_L > a')
-    s1=[]
-    for tag in b :
-        s1.append(tag["href"])
-
-    s1=pd.DataFrame(s1)
-    v_split = s1[0].str.split('(')
-    s1= pd.DataFrame(v_split.str.get(1))
-
-    v_split = s1[0].str.split(',')
-    s1= pd.DataFrame(v_split.str.get(0))
-    s2=[]
-    for tag in s1[0] :
-        s2.append(tag[1:-1])
-
-    b= pd.DataFrame(s2)
-
-    # Uploader
-    s1=[]
-    for tag in range(len(a)) :
-        s1.append("IP_NAVI_NEWS")
-
-    c= pd.DataFrame(s1)
-
-    # 날짜
-    d=soup.select('body > div.container > div.board_wrap > table > tbody > tr > td:nth-child(3)')
-    d= pd.DataFrame(d)
-    s1=[]
-    time_format= "%Y-%m-%d"
-    for tag in d[0]:
-          s1.append ( datetime.datetime.strptime ( tag , time_format ) )
-
-    d= pd.DataFrame(s1)
-
-    # 조회수
-    s1=[]
-    for tag in range(len(a)) :
-        s1.append("None")
-
-    e= pd.DataFrame(s1)
-
-
-    # 분류
-    s1=[]
-    for tag in range(len(a)) :
-        s1.append("None")
-
-    f= pd.DataFrame(s1)
-
-    #번호
-    g=soup.select('body > div.container > div.board_wrap > table > tbody > tr > td:nth-child(1)')
-    g= pd.DataFrame(g)
-
-    #헤드라인 a, 링크 b, 업로더 c, 날짜 d, 조회수 e, 분류 f, 번호 g
-    df=[]
-    df= pd.merge(g,f, left_index=True, right_index=True, how='outer')
-    df= pd.merge(df,a, left_index=True, right_index=True, how='outer')
-    df= pd.merge(df,b, left_index=True, right_index=True, how='outer')
-    df= pd.merge(df,c, left_index=True, right_index=True, how='outer')
-    df= pd.merge(df,e, left_index=True, right_index=True, how='outer')
-    df = pd.merge ( df , d , left_index=True , right_index=True , how='outer' )
-    return df
-
-
-from selenium.webdriver.common.keys import Keys
-
-# 1번
-IP_news=[]
-IP_news = function_IP_news() # 1번
-
-# 2번
-driver.find_element_by_xpath('//*[@id="divPagination"]/a[1]').send_keys(Keys.ENTER)
-driver.implicitly_wait(3)
-a = function_IP_news()
-IP_news=pd.concat([IP_news,a])
-
-# 3번
-
-driver.find_element_by_xpath('//*[@id="divPagination"]/a[4]').send_keys(Keys.ENTER)
-driver.implicitly_wait(3)
-a = function_IP_news()
-IP_news=pd.concat([IP_news,a])
-
-# 4번
-
-driver.find_element_by_xpath('//*[@id="divPagination"]/a[5]').send_keys(Keys.ENTER)
-driver.implicitly_wait(3)
-a = function_IP_news()
-IP_news=pd.concat([IP_news,a])
-
-# 5번
-
-driver.find_element_by_xpath('//*[@id="divPagination"]/a[6]').send_keys(Keys.ENTER)
-driver.implicitly_wait(3)
-a = function_IP_news()
-IP_news=pd.concat([IP_news,a])
-
-# 6번
-
-driver.find_element_by_xpath('//*[@id="divPagination"]/a[7]').send_keys(Keys.ENTER)
-driver.implicitly_wait(3)
-a = function_IP_news()
-IP_news=pd.concat([IP_news,a])
-
-# 7번
-
-driver.find_element_by_xpath('//*[@id="divPagination"]/a[8]').send_keys(Keys.ENTER)
-driver.implicitly_wait(3)
-a = function_IP_news()
-IP_news=pd.concat([IP_news,a])
-
-# 8번
-
-driver.find_element_by_xpath('//*[@id="divPagination"]/a[9]').send_keys(Keys.ENTER)
-a = function_IP_news()
-IP_news=pd.concat([IP_news,a])
-
-# 9번
-
-driver.find_element_by_xpath('//*[@id="divPagination"]/a[9]').send_keys(Keys.ENTER)
-driver.implicitly_wait(3)
-a = function_IP_news()
-IP_news=pd.concat([IP_news,a])
-
-# 10번
-
-driver.find_element_by_xpath('//*[@id="divPagination"]/a[9]').send_keys(Keys.ENTER)
-driver.implicitly_wait(3)
-a = function_IP_news()
-IP_news=pd.concat([IP_news,a])
-
-IP_news.columns=['번호', '분류', "제목", '링크',"작성자", "조회", "등록일"]
-# IP_news.to_excel('./Text1.xlsx',sheet_name='전체')
-
-# < IP_Desk_news --------------------------------------------------------------------------------- 종료 2>
-
-
-options = webdriver.ChromeOptions()
-options.add_experimental_option('excludeSwitches', ['enable-logging'])
-driver = webdriver.Chrome(options=options)
-driver.implicitly_wait(3)
-driver.get('http://www.ip-navi.or.kr/ipnavi/ref/boardList.navi?boardCode=B00018')
-time.sleep(1)
-
-
-def function_IP_Desk_news() :
-    page = driver.page_source
-    soup = bs ( page , "html.parser" )
-
-    # 헤드라인
-    a = []
-    a = soup.select ( '#frm > div > div.board_wrap > table > tbody > tr > td.align_L>a' )
-    s1 = []
-    for tag in a :
-        s1.append ( tag.text )
-
-    s2 = []
-    for tag in s1 :
-        s2.append (
-            tag.replace ( '\n' , '' ).replace ( '\t' , '' ).replace ( '  ' , '' ).replace ( '\xa0' , '' ).replace (
-                '\r' , '' ) )
-
-    a = pd.DataFrame ( s2 )
-
-    # 링크
-    b = soup.select ( '#frm > div > div.board_wrap > table > tbody > tr > td.align_L >a ' )
-    s1 = []
-    for tag in b :
-        s1.append ( tag["href"] )
-
-    s1 = pd.DataFrame ( s1 )
-    v_split = s1[0].str.split ( ',' )
-    s1 = pd.DataFrame ( v_split.str.get ( 1 ) )
-    v_split = s1[0].str.split ( ')' )
-    s1 = pd.DataFrame ( v_split.str.get ( 0 ) )
-    s2 = []
-    for tag in s1[0] :
-        s2.append ( tag[1 :-1] )
-    s1 = []
-    for tag in s2 :
-        s1.append (
-            "https://www.ip-navi.or.kr/ipnavi/ref/boardDetail.navi;jsessionid=2D70B0DCB138F2CF8F99F936475D17F6?boardCode=B00018&boardSeq=" + tag )
-
-    b = pd.DataFrame ( s1 )
-
-    # Uploader
-    s1 = []
-    for tag in range ( len ( a ) ) :
-        s1.append ( "IP_DESK_NEWS" )
-    c = pd.DataFrame ( s1 )
-    # 날짜
-    d = soup.select ( '#frm > div > div.board_wrap > table > tbody > tr > td:nth-child(4)' )
-    d = pd.DataFrame ( d )
-    s1 = []
-    time_format = "%Y-%m-%d"
-    for tag in d[0] :
-        s1.append ( datetime.datetime.strptime ( tag , time_format ) )
-
-    d = pd.DataFrame ( s1 )
-    # 조회수
-    e = soup.select ( '#frm > div > div.board_wrap > table > tbody > tr > td:nth-child(3)' )
-    e = pd.DataFrame ( e )
-    s1 = []
-    for tag in e[0] :
-        s1.append ( int ( tag ) )
-
-    e = pd.DataFrame ( s1 )
-    s1 = []
-    for tag in e[0] :
-        s1.append ( int ( tag ) )
-
-    e = pd.DataFrame ( s1 )
-
-    # 분류
-    s1 = []
-    for tag in range ( len ( a ) ) :
-        s1.append ( "NONE" )
-    f = pd.DataFrame ( s1 )
-    # 번호
-    g = soup.select ( '#frm > div > div.board_wrap > table > tbody > tr > td:nth-child(1)' )
-    g = pd.DataFrame ( g )
-
-    # 헤드라인 a, 링크 b, 업로더 c, 날짜 d, 조회수 e, 분류 f, 번호 g
-    df = []
-    df = g
-    df['분류'] = 'IP_DESK_지재권뉴스'
-    df = pd.merge ( df , a , left_index=True , right_index=True , how='outer' )
-    df = pd.merge ( df , b , left_index=True , right_index=True , how='outer' )
-    df = pd.merge ( df , c , left_index=True , right_index=True , how='outer' )
-    df = pd.merge ( df , e , left_index=True , right_index=True , how='outer' )
-    df = pd.merge ( df , d , left_index=True , right_index=True , how='outer' )
-    return df
-
-
-#1
-IP_Desk_news=[]
-IP_Desk_news = function_IP_Desk_news() # 1번
-
-# 2번
-driver.find_element_by_xpath('//*[@id="divPagination"]/a[1]').send_keys(Keys.ENTER)
-driver.implicitly_wait(3)
-a = function_IP_Desk_news()
-IP_Desk_news=pd.concat([IP_Desk_news,a])
-
-# 3번
-driver.find_element_by_xpath('//*[@id="divPagination"]/a[4]').send_keys(Keys.ENTER)
-driver.implicitly_wait(3)
-a = function_IP_Desk_news()
-IP_Desk_news=pd.concat([IP_Desk_news,a])
-
-# 4번
-driver.find_element_by_xpath('//*[@id="divPagination"]/a[5]').send_keys(Keys.ENTER)
-driver.implicitly_wait(3)
-a = function_IP_Desk_news()
-IP_Desk_news=pd.concat([IP_Desk_news,a])
-
-# 5번
-driver.find_element_by_xpath('//*[@id="divPagination"]/a[6]').send_keys(Keys.ENTER)
-driver.implicitly_wait(3)
-a = function_IP_Desk_news()
-IP_Desk_news=pd.concat([IP_Desk_news,a])
-
-
-IP_Desk_news.columns=['번호', '분류', "제목", '링크',"작성자", "조회", "등록일"]
-# IP_Desk_news.to_excel('./Text2.xlsx',sheet_name='전체')
